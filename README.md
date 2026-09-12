@@ -1,32 +1,37 @@
-# React + TypeScript + Vite
+# Fajar Portfolio
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Portfolio of Rahmat Fajar Saputra, AI Software Developer.
+Vite + React 19 + TypeScript + Tailwind CSS v4, with Supabase as the project
+backend and a built-in `/admin` CMS.
 
-Currently, two official plugins are available:
+## Run locally
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. `pnpm install`
+2. Copy `.env.example` to `.env` and fill `VITE_SUPABASE_URL` and
+   `VITE_SUPABASE_ANON_KEY`. Optional until you use `/admin`; without them
+   the site runs on bundled data.
+3. `pnpm dev`
 
-## React Compiler
+## Backend setup (Supabase, once)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Create a project at supabase.com
+2. SQL Editor, paste `supabase.sql`, Run (table `projects` + RLS + bucket
+   `project-images`)
+3. Authentication, Add user (login for `/admin`)
+4. Project Settings, API, copy URL + anon key into `.env`, restart dev server
+5. Upload project screenshots via Storage, `project-images`, paste the URL
+   when adding a project in `/admin`
 
-## Expanding the Oxlint configuration
+## Scripts
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+- `pnpm dev` / `pnpm build` / `pnpm preview` / `pnpm lint`
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
+## Routes
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+- `/` Home · `/expertise` works archive · `/about` · `/contact`
+- `/admin` project CMS (login required, not linked publicly)
+
+## Contact form
+
+POSTs JSON to `VITE_CONTACT_ENDPOINT` (Formspree/Web3Forms) when set,
+otherwise falls back to a prefilled `mailto:`.

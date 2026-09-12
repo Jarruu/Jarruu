@@ -1,32 +1,4 @@
-import {
-  LinkedinIcon,
-  InstagramIcon,
-  WhatsappIcon,
-  MailIcon,
-} from "./icons";
-
-const socials = [
-  {
-    label: "LinkedIn",
-    href: "https://www.linkedin.com/in/rahmat-fajar-saputra-90690a287/",
-    Icon: LinkedinIcon,
-  },
-  {
-    label: "Instagram",
-    href: "https://www.instagram.com/jaarruu_",
-    Icon: InstagramIcon,
-  },
-  {
-    label: "WhatsApp",
-    href: "https://wa.me/62895600077007",
-    Icon: WhatsappIcon,
-  },
-  {
-    label: "Email",
-    href: "mailto:fajar.saputra2907@gmail.com",
-    Icon: MailIcon,
-  },
-];
+import { socials } from "../data/socials";
 
 const linkCls =
   "font-body-md text-body-md text-on-surface hover:text-secondary transition-colors flex items-center gap-3";
@@ -49,8 +21,8 @@ export default function Footer() {
               key={label}
               className={linkCls}
               href={href}
-              target="_blank"
-              rel="noreferrer"
+              target={href.startsWith("mailto:") ? undefined : "_blank"}
+              rel="noopener noreferrer"
             >
               <Icon />
               {label}
@@ -64,7 +36,7 @@ export default function Footer() {
               className={linkCls}
               href={href}
               target={href.startsWith("mailto:") ? undefined : "_blank"}
-              rel="noreferrer"
+              rel="noopener noreferrer"
             >
               <Icon />
               {label}

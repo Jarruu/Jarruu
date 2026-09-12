@@ -7,21 +7,21 @@ export type Experience = {
 
 export const experience: Experience[] = [
   {
-    role: "B.Sc. Computer Engineering",
+    role: "Computer Engineering Student",
     org: "Universitas Andalas",
-    period: "2023 — Now",
+    period: "2023–Now",
     tag: "Education",
   },
   {
     role: "Laboratory Assistant",
     org: "Robotic and Embedded System Laboratory, Universitas Andalas",
-    period: "2025 — Now",
+    period: "2025–Now",
     tag: "Assistant",
   },
   {
-    role: "Member",
-    org: "UKM Neo Telemetri — teknologi, software & AI",
-    period: "2025 — Now",
+    role: "Member of Programming Division",
+    org: "UKM Neo Telemetri, teknologi, software & AI",
+    period: "2025–Now",
     tag: "Community",
   },
   {
@@ -33,7 +33,7 @@ export const experience: Experience[] = [
 ];
 
 export const skills = [
-  "Software Engineering",
-  "AI & Machine Learning",
-  "Embedded System & IoT",
+  "Websites & Apps",
+  "Smart Features with AI",
+  "Robots & Smart Devices",
 ];

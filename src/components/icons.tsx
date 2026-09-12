@@ -45,6 +45,42 @@ export function WhatsappIcon({ className }: IconProps) {
   );
 }
 
+function Stroke({
+  className = "w-4 h-4",
+  path,
+}: IconProps & { path: string }) {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d={path} />
+    </svg>
+  );
+}
+
+export function ArrowForwardIcon({ className }: IconProps) {
+  return <Stroke className={className} path="M5 12h14M13 6l6 6-6 6" />;
+}
+
+export function ArrowOutwardIcon({ className }: IconProps) {
+  return <Stroke className={className} path="M7 17 17 7M8 7h9v9" />;
+}
+
+export function MenuIcon({ className }: IconProps) {
+  return <Stroke className={className} path="M4 7h16M4 12h16M4 17h16" />;
+}
+
+export function CloseIcon({ className }: IconProps) {
+  return <Stroke className={className} path="M18 6 6 18M6 6l12 12" />;
+}
+
 export function MailIcon({ className }: IconProps) {
   return (
     <Base

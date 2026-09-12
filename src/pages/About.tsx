@@ -1,32 +1,36 @@
 import cvUrl from "../assets/CV-ATS-Fajar.pdf";
 import photoUrl from "../assets/fajar.webp";
+import { ArrowForwardIcon } from "../components/icons";
+import usePageTitle from "../hooks/usePageTitle";
 
 const services = [
   {
-    title: "Software Engineering",
-    desc: "Building fast, maintainable web apps — from internal admin tools to public information systems with modern stacks.",
+    title: "Websites & Apps",
+    desc: "Fast websites and apps people actually enjoy using, from company tools to public-facing products.",
   },
   {
-    title: "AI & Machine Learning",
-    desc: "Integrating AI into real products: intelligent features, automation, and model-backed experiences.",
+    title: "Smart Features with AI",
+    desc: "Practical AI touches like automation and smart search, only where they are useful.",
   },
   {
-    title: "Embedded System & IoT",
-    desc: "Robotics and embedded systems — from the university laboratory to Neo Telemetri student projects.",
+    title: "Robots & Smart Devices",
+    desc: "Hands-on work with robots and smart devices, from the campus lab to student community projects.",
   },
 ];
 
 export default function About() {
+  usePageTitle("About | Rahmat Fajar Saputra");
+
   return (
-    <main className="pt-[120px] pb-section-gap">
-      <section className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop mb-section-gap">
+    <main className="pt-[120px] pb-stack-lg">
+      <section className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop mb-stack-lg">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter items-center">
           <div className="col-span-1 md:col-span-7 pr-0 md:pr-12">
             <p className="font-label-caps text-label-caps text-on-surface-variant mb-stack-md uppercase tracking-widest">
-              Rahmat Fajar Saputra — Padang, Indonesia
+              Rahmat Fajar Saputra, Padang, Indonesia
             </p>
             <h1 className="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg text-primary mb-stack-md leading-tight">
-              AI Software Engineer building intelligent products for the real
+              AI Software Developer building intelligent products for the real
               world.
             </h1>
             <p className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
@@ -41,6 +45,7 @@ export default function About() {
               <img
                 alt="Rahmat Fajar Saputra"
                 src={photoUrl}
+                decoding="async"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -48,7 +53,7 @@ export default function About() {
         </div>
       </section>
 
-      <section className="bg-surface-container-low py-section-gap mb-section-gap border-y border-on-surface/5">
+      <section className="bg-surface-container-low py-stack-lg mb-stack-lg border-y border-on-surface/5">
         <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter">
             <div className="col-span-1 md:col-span-4">
@@ -64,13 +69,13 @@ export default function About() {
                 <p>
                   Technology should solve real problems, not create new ones.
                   I believe the best products are practical, maintainable,
-                  and honest — AI where it adds value, simplicity everywhere
+                  and honest, AI where it adds value, simplicity everywhere
                   else.
                 </p>
                 <p>
                   Every project starts from the actual need: an inventory
-                  system that staff will really use, a village website that
-                  villagers can really update. Clean code and clear interfaces
+                  system that staff will really use, a dashboard that
+                  non-technical staff can really update. Clean code and clear interfaces
                   follow from that.
                 </p>
               </div>
@@ -79,7 +84,7 @@ export default function About() {
         </div>
       </section>
 
-      <section className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop mb-section-gap">
+      <section className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop mb-stack-lg">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter">
           <div className="col-span-1 md:col-span-4 mb-stack-lg md:mb-0">
             <h2 className="font-label-caps text-label-caps text-on-surface-variant mb-stack-md uppercase tracking-widest">
@@ -95,9 +100,7 @@ export default function About() {
               download="CV-Rahmat-Fajar-Saputra.pdf"
             >
               Download CV
-              <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">
-                arrow_forward
-              </span>
+              <ArrowForwardIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </a>
           </div>
           <div className="col-span-1 md:col-span-8">

@@ -4,6 +4,7 @@ import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import Expertise from "./pages/Expertise";
 import About from "./pages/About";
+import Admin from "./pages/Admin";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="expertise" element={<Expertise />} />
           <Route path="about" element={<About />} />
           <Route path="contact" element={<Contact />} />
+          <Route path="admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
