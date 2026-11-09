@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 625" width="1000" height="625">
+	<rect width="1000" height="625" fill="#EAEAE7" />
+	<rect x="36" y="36" width="928" height="553" fill="none" stroke="#111111" stroke-width="2" />
+	<line x1="36" y1="104" x2="964" y2="104" stroke="#111111" stroke-width="1.5" />
+	<line x1="36" y1="515" x2="964" y2="515" stroke="#111111" stroke-width="1.5" />
+	<text x="64" y="78" fill="#111111" font-family="monospace" font-size="15" font-weight="bold">SPEC-05 // TELEMETRY UI</text>
+	<rect x="700" y="54" width="236" height="32" fill="#111111" />
+	<text x="818" y="75" fill="#F4F4F2" font-family="monospace" font-size="13" text-anchor="middle">PLACEHOLDER SCHEMATIC</text>
+	<rect x="140" y="175" width="720" height="260" fill="none" stroke="#111111" stroke-width="2" />
+	<line x1="140" y1="305" x2="860" y2="305" stroke="#111111" stroke-width="1" stroke-dasharray="5 5" />
+	<polyline points="165,375 225,340 285,355 345,250 405,270 465,215 525,245 585,310 645,235 705,255 765,205 835,225" fill="none" stroke="#111111" stroke-width="3" />
+	<text x="165" y="205" fill="#111111" font-family="monospace" font-size="13">CH_01: SERIAL_UART_115200 // RING BUFFER 1024 SAMPLES</text>
+	<text x="64" y="552" fill="#111111" font-family="sans-serif" font-size="22" font-weight="bold">MULTI-NODE SENSOR TELEMETRY CONSOLE</text>
+	<text x="64" y="576" fill="#555551" font-family="monospace" font-size="13">WEBSOCKETS · MQTT BROKER · CSV EXPORT</text>
+</svg>

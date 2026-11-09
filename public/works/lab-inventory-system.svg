@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 625" width="1000" height="625">
+	<rect width="1000" height="625" fill="#EAEAE7" />
+	<rect x="36" y="36" width="928" height="553" fill="none" stroke="#111111" stroke-width="2" />
+	<line x1="36" y1="104" x2="964" y2="104" stroke="#111111" stroke-width="1.5" />
+	<line x1="36" y1="515" x2="964" y2="515" stroke="#111111" stroke-width="1.5" />
+	<text x="64" y="78" fill="#111111" font-family="monospace" font-size="15" font-weight="bold">SPEC-03 // WEB SOFTWARE</text>
+	<rect x="700" y="54" width="236" height="32" fill="#111111" />
+	<text x="818" y="75" fill="#F4F4F2" font-family="monospace" font-size="13" text-anchor="middle">PLACEHOLDER SCHEMATIC</text>
+	<rect x="130" y="175" width="740" height="260" fill="none" stroke="#111111" stroke-width="2" />
+	<line x1="130" y1="225" x2="870" y2="225" stroke="#111111" stroke-width="2" />
+	<line x1="130" y1="295" x2="870" y2="295" stroke="#111111" stroke-width="1" />
+	<line x1="130" y1="365" x2="870" y2="365" stroke="#111111" stroke-width="1" />
+	<text x="155" y="206" fill="#111111" font-family="monospace" font-size="13" font-weight="bold">ASSET_CODE      HARDWARE MODULE            STATUS        BORROWER</text>
+	<text x="155" y="266" fill="#111111" font-family="monospace" font-size="13">RES-MCU-014     ESP32-CAM DEVKIT           ON_LOAN       PRACTICUM_G04</text>
+	<text x="155" y="336" fill="#111111" font-family="monospace" font-size="13">RES-SEN-082     TF-LUNA LIDAR I2C          AVAILABLE     CABINET_B2</text>
+	<text x="155" y="406" fill="#111111" font-family="monospace" font-size="13">RES-PSU-003     BENCH DC SUPPLY 30V/5A     BENCH_USE     STATION_02</text>
+	<text x="64" y="552" fill="#111111" font-family="sans-serif" font-size="22" font-weight="bold">LABORATORY HARDWARE INVENTORY &amp; LOAN LEDGER</text>
+	<text x="64" y="576" fill="#555551" font-family="monospace" font-size="13">TYPESCRIPT · REST API · RELATIONAL SQL</text>
+</svg>

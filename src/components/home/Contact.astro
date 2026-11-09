@@ -1,0 +1,122 @@
+---
+import { profile } from '../../data/profile';
+import { type Lang, useTranslations } from '../../i18n/utils';
+
+interface Props {
+	lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const channels = [
+	{
+		code: 'CH-01 // PRIMARY',
+		action: t('contact.wa'),
+		handle: profile.socials.whatsapp.handle,
+		url: profile.socials.whatsapp.url,
+	},
+	{
+		code: 'CH-02 // PROFESSIONAL',
+		action: t('contact.li'),
+		handle: profile.socials.linkedin.handle,
+		url: profile.socials.linkedin.url,
+	},
+	{
+		code: 'CH-03 // SOCIAL',
+		action: t('contact.ig'),
+		handle: profile.socials.instagram.handle,
+		url: profile.socials.instagram.url,
+	},
+];
+---
+
+<section id="contact" class="contact-section">
+	<div class="container">
+		<div class="section-header">
+			<span class="section-index">{t('contact.index')}</span>
+			<span class="mono-meta">PADANG, WEST SUMATRA // INDONESIA</span>
+		</div>
+
+		<div class="contact-lead" data-reveal>
+			<h2 class="contact-heading">{t('contact.heading')}</h2>
+			<p class="contact-sub">{t('contact.sub')}</p>
+		</div>
+
+		<div class="channel-list" data-reveal>
+			{
+				channels.map((ch) => (
+					<a
+						href={ch.url}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="channel-row"
+					>
+						<span class="mono-meta channel-code">{ch.code}</span>
+						<span class="channel-action">{ch.action}</span>
+						<span class="mono-meta channel-handle">{ch.handle}</span>
+					</a>
+				))
+			}
+		</div>
+	</div>
+</section>
+
+<style>
+	.contact-section {
+		padding-block: clamp(3.5rem, 7vw, 6.5rem);
+	}
+
+	.contact-lead {
+		max-width: 780px;
+		margin-bottom: clamp(2rem, 4vw, 3.5rem);
+	}
+
+	.contact-heading {
+		font-size: clamp(2rem, 4vw, 3.25rem);
+		margin-bottom: 0.75rem;
+	}
+
+	.contact-sub {
+		font-size: 1.0625rem;
+		color: var(--muted);
+	}
+
+	.channel-list {
+		border-top: 1.5px solid var(--fg);
+	}
+
+	.channel-row {
+		display: grid;
+		grid-template-columns: 180px 1fr auto;
+		gap: 1.5rem;
+		align-items: center;
+		min-height: 76px;
+		padding: 1.25rem 1rem;
+		border-bottom: 1px solid var(--line);
+		transition: background-color 0.15s ease, color 0.15s ease, padding-inline 0.2s ease;
+	}
+
+	.channel-row:hover {
+		background-color: var(--inv-bg);
+		color: var(--inv-fg);
+		padding-inline: 1.5rem;
+	}
+
+	.channel-row:hover .mono-meta {
+		color: var(--inv-fg);
+	}
+
+	.channel-action {
+		font-family: 'Bricolage Grotesque Variable', sans-serif;
+		font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+		font-weight: 600;
+	}
+
+	@media (max-width: 720px) {
+		.channel-row {
+			grid-template-columns: 1fr;
+			gap: 0.25rem;
+		}
+	}
+</style>

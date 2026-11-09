@@ -1,23 +1,75 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import '@fontsource-variable/bricolage-grotesque';
+import '@fontsource-variable/ibm-plex-sans';
+import '@fontsource/ibm-plex-mono/400.css';
+import '@fontsource/ibm-plex-mono/500.css';
+import '../styles/global.css';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import { type Lang, useTranslations, switchLocaleUrl } from '../i18n/utils';
+
+interface Props {
+	lang: Lang;
+	title?: string;
+	description?: string;
+}
+
+const { lang, title, description } = Astro.props;
+const t = useTranslations(lang);
+const pageTitle = title ? `${title} | Rahmat Fajar Saputra` : t('meta.title');
+const pageDescription = description ?? t('meta.description');
+const altEn = switchLocaleUrl(Astro.url, 'en');
+const altId = switchLocaleUrl(Astro.url, 'id');
+---
+
 <!doctype html>
-<html lang="en">
+<html lang={lang}>
 	<head>
 		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="icon" href="/favicon.ico" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
+		<title>{pageTitle}</title>
+		<meta name="description" content={pageDescription} />
+		<link rel="alternate" hreflang="en" href={altEn} />
+		<link rel="alternate" hreflang="id" href={altId} />
+		<meta property="og:title" content={pageTitle} />
+		<meta property="og:description" content={pageDescription} />
+		<meta property="og:type" content="website" />
+		<ClientRouter />
 	</head>
 	<body>
-		<slot />
+		<a class="skip-link" href="#main-content">{t('skip.content')}</a>
+		<Nav lang={lang} />
+		<main id="main-content">
+			<slot />
+		</main>
+		<Footer lang={lang} />
+		<script>
+			import { onPageLoad } from '../scripts/lib/lifecycle';
+			import { initHomeAnimations, initWorksArchive } from '../scripts/animations/page-controllers';
+
+			onPageLoad(() => {
+				const cleanups: Array<() => void> = [];
+				let disposed = false;
+				const heroRoot = document.querySelector<HTMLElement>('[data-hero-root]');
+				if (heroRoot) {
+					import('../scripts/scene/hero-scene').then(({ initHeroScene }) => {
+						if (!disposed) {
+							cleanups.push(initHeroScene(heroRoot));
+						}
+					});
+				}
+				cleanups.push(initHomeAnimations());
+				cleanups.push(initWorksArchive());
+
+				return () => {
+					disposed = true;
+					for (const fn of cleanups) fn();
+				};
+			});
+		</script>
 	</body>
 </html>
-
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
-</style>

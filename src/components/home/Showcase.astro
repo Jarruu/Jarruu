@@ -1,0 +1,280 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { type Lang, useTranslations, localePath } from '../../i18n/utils';
+
+interface Props {
+	lang: Lang;
+	featuredWorks: CollectionEntry<'works'>[];
+}
+
+const { lang, featuredWorks } = Astro.props;
+const t = useTranslations(lang);
+const allWorksUrl = localePath(lang, 'work');
+const totalPanels = String(featuredWorks.length).padStart(2, '0');
+---
+
+<section id="selected-works" class="showcase-section" data-showcase-section>
+	<div class="container showcase-top">
+		<div class="section-header">
+			<span class="section-index">{t('showcase.index')}</span>
+			<div class="showcase-counter mono-meta">
+				<span data-showcase-current>01</span>
+				<span>/</span>
+				<span>{totalPanels}</span>
+			</div>
+		</div>
+
+		<div class="showcase-intro">
+			<div>
+				<h2 class="showcase-heading">{t('showcase.heading')}</h2>
+				<p class="showcase-sub">{t('showcase.sub')}</p>
+			</div>
+			<a href={allWorksUrl} class="btn-secondary">
+				{t('showcase.all')}
+			</a>
+		</div>
+	</div>
+
+	<div class="showcase-viewport">
+		<div class="showcase-track" data-showcase-track>
+			{
+				featuredWorks.map((entry, idx) => {
+					const detailUrl = localePath(lang, `work/${entry.data.slugId}`);
+					const num = String(idx + 1).padStart(2, '0');
+					return (
+						<article class="showcase-panel" data-showcase-panel>
+							<a href={detailUrl} class="panel-cover-link" data-panel-cover>
+								<img
+									src={entry.data.cover}
+									alt={entry.data.coverAlt}
+									width="1000"
+									height="625"
+									loading="lazy"
+									transition:name={`work-cover-${entry.data.slugId}`}
+								/>
+							</a>
+
+							<div class="panel-body">
+								<div class="panel-meta-row">
+									<span class="mono-meta">
+										{num} // {entry.data.category.toUpperCase()} · {entry.data.year}
+									</span>
+									{entry.data.placeholder && (
+										<span class="placeholder-tag">{t('showcase.placeholder')}</span>
+									)}
+								</div>
+
+								<h3 class="panel-title">
+									<a href={detailUrl}>{entry.data.title}</a>
+								</h3>
+
+								<p class="panel-summary">{entry.data.summary}</p>
+
+								<ul class="panel-stack" aria-label="Technologies">
+									{entry.data.stack.map((tech) => (
+										<li class="mono-meta">{tech}</li>
+									))}
+								</ul>
+
+								<div class="panel-footer">
+									<a href={detailUrl} class="btn-primary">
+										{t('showcase.view')}: {entry.data.title.split(' ')[0]}
+									</a>
+								</div>
+							</div>
+						</article>
+					);
+				})
+			}
+
+			<div class="showcase-panel archive-cta-panel">
+				<div class="archive-cta-inner">
+					<p class="mono-meta">ARCHIVE // 06 BUILDS</p>
+					<h3 class="archive-cta-title">{t('showcase.all')}</h3>
+					<p class="archive-cta-sub">{t('showcase.all.sub')}</p>
+					<a href={allWorksUrl} class="btn-primary">
+						{t('showcase.all')}
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="container showcase-progress-wrap" aria-hidden="true">
+		<div class="showcase-progress-bar">
+			<div class="showcase-progress-fill" data-showcase-progress></div>
+		</div>
+	</div>
+</section>
+
+<style>
+	.showcase-section {
+		padding-block: clamp(3rem, 6vw, 5rem);
+		border-bottom: 1px solid var(--line);
+		background-color: var(--surface);
+		overflow: clip;
+	}
+
+	.showcase-intro {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: 1.5rem;
+		margin-bottom: 2rem;
+		flex-wrap: wrap;
+	}
+
+	.showcase-heading {
+		font-size: clamp(2rem, 3.6vw, 3rem);
+		margin-bottom: 0.375rem;
+	}
+
+	.showcase-sub {
+		color: var(--muted);
+		max-width: 58ch;
+	}
+
+	.showcase-viewport {
+		width: 100%;
+		padding-inline: clamp(1.25rem, 4vw, 3.5rem);
+	}
+
+	.showcase-track {
+		display: flex;
+		gap: 2rem;
+		width: max-content;
+	}
+
+	.showcase-panel {
+		width: min(78vw, 820px);
+		border: 1.5px solid var(--border-strong);
+		background-color: var(--bg);
+		display: grid;
+		grid-template-columns: 1.15fr 1fr;
+		overflow: hidden;
+	}
+
+	.panel-cover-link {
+		display: block;
+		border-right: 1px solid var(--line);
+		background-color: var(--surface);
+		overflow: hidden;
+	}
+
+	.panel-cover-link img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform 0.35s ease;
+	}
+
+	.panel-cover-link:hover img {
+		transform: scale(1.03);
+	}
+
+	.panel-body {
+		padding: 1.5rem;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+
+	.panel-meta-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	.panel-title {
+		font-size: clamp(1.35rem, 2vw, 1.75rem);
+	}
+
+	.panel-title a:hover {
+		text-decoration: underline;
+	}
+
+	.panel-summary {
+		color: var(--muted);
+		font-size: 0.9375rem;
+	}
+
+	.panel-stack {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.375rem;
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.panel-stack li {
+		padding: 0.125rem 0.5rem;
+		border: 1px solid var(--line);
+	}
+
+	.archive-cta-panel {
+		width: min(65vw, 480px);
+		grid-template-columns: 1fr;
+		align-items: center;
+		padding: 2.5rem;
+	}
+
+	.archive-cta-inner {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 1rem;
+	}
+
+	.archive-cta-title {
+		font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+	}
+
+	.archive-cta-sub {
+		color: var(--muted);
+	}
+
+	.showcase-progress-wrap {
+		margin-top: 1.75rem;
+	}
+
+	.showcase-progress-bar {
+		width: 100%;
+		height: 3px;
+		background-color: var(--line);
+		overflow: hidden;
+	}
+
+	.showcase-progress-fill {
+		width: 100%;
+		height: 100%;
+		background-color: var(--fg);
+		transform: scaleX(0.25);
+		transform-origin: left center;
+	}
+
+	@media (max-width: 959px) {
+		.showcase-track {
+			flex-direction: column;
+			width: 100%;
+		}
+
+		.showcase-panel,
+		.archive-cta-panel {
+			width: 100%;
+			grid-template-columns: 1fr;
+		}
+
+		.panel-cover-link {
+			border-right: 0;
+			border-bottom: 1px solid var(--line);
+		}
+
+		.showcase-progress-wrap {
+			display: none;
+		}
+	}
+</style>

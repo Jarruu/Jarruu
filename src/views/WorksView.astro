@@ -1,0 +1,382 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../layouts/Layout.astro';
+import { type Lang, useTranslations, localePath } from '../i18n/utils';
+
+interface Props {
+	lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const works = (await getCollection('works', (entry) => entry.data.lang === lang)).sort(
+	(a, b) => a.data.order - b.data.order,
+);
+---
+
+<Layout lang={lang} title={t('works.heading')}>
+	<section class="works-page" data-works-archive>
+		<div class="container">
+			<div class="section-header">
+				<span class="section-index">{t('works.index')}</span>
+				<span class="mono-meta">TOTAL ENTRIES: {String(works.length).padStart(2, '0')}</span>
+			</div>
+
+			<div class="works-hero">
+				<h1 class="works-title">{t('works.heading')}</h1>
+				<p class="works-sub">{t('works.sub')}</p>
+			</div>
+
+			<div class="works-toolbar">
+				<div class="filter-group" role="group" aria-label="Filter by subsystem">
+					<button
+						type="button"
+						class="toolbar-btn is-active"
+						data-filter-btn="all"
+						aria-pressed="true"
+					>
+						{t('works.filter.all')}
+					</button>
+					<button
+						type="button"
+						class="toolbar-btn"
+						data-filter-btn="iot"
+						aria-pressed="false"
+					>
+						{t('works.filter.iot')}
+					</button>
+					<button
+						type="button"
+						class="toolbar-btn"
+						data-filter-btn="ai"
+						aria-pressed="false"
+					>
+						{t('works.filter.ai')}
+					</button>
+					<button
+						type="button"
+						class="toolbar-btn"
+						data-filter-btn="software"
+						aria-pressed="false"
+					>
+						{t('works.filter.software')}
+					</button>
+				</div>
+
+				<div class="view-group" role="group" aria-label="Layout mode">
+					<button
+						type="button"
+						class="toolbar-btn is-active"
+						data-view-btn="list"
+						aria-pressed="true"
+					>
+						{t('works.view.list')}
+					</button>
+					<button
+						type="button"
+						class="toolbar-btn"
+						data-view-btn="grid"
+						aria-pressed="false"
+					>
+						{t('works.view.grid')}
+					</button>
+				</div>
+			</div>
+
+			<div class="works-container" data-works-container data-view-mode="list">
+				<div class="list-head mono-meta" aria-hidden="true">
+					<span>{t('works.col.num')}</span>
+					<span>{t('works.col.title')}</span>
+					<span>{t('works.col.cat')}</span>
+					<span>{t('works.col.year')}</span>
+				</div>
+
+				{
+					works.map((entry, idx) => {
+						const detailUrl = localePath(lang, `work/${entry.data.slugId}`);
+						const num = String(idx + 1).padStart(2, '0');
+						return (
+							<article
+								class="work-item"
+								data-work-item
+								data-category={entry.data.category}
+								data-cover={entry.data.cover}
+							>
+								<a href={detailUrl} class="work-link">
+									<div class="work-cover-thumb">
+										<img
+											src={entry.data.cover}
+											alt={entry.data.coverAlt}
+											width="1000"
+											height="625"
+											loading="lazy"
+											transition:name={`work-cover-${entry.data.slugId}`}
+										/>
+									</div>
+
+									<div class="work-num mono-meta">{num}</div>
+
+									<div class="work-main">
+										<div class="work-title-row">
+											<h2 class="work-item-title">{entry.data.title}</h2>
+											{entry.data.placeholder && (
+												<span class="placeholder-tag">{t('showcase.placeholder')}</span>
+											)}
+										</div>
+										<p class="work-item-summary">{entry.data.summary}</p>
+										<ul class="work-item-stack" aria-label="Stack">
+											{entry.data.stack.map((tech) => (
+												<li class="mono-meta">{tech}</li>
+											))}
+										</ul>
+									</div>
+
+									<div class="work-cat mono-meta">{entry.data.category.toUpperCase()}</div>
+									<div class="work-year mono-meta">{entry.data.year}</div>
+								</a>
+							</article>
+						);
+					})
+				}
+			</div>
+
+			<div class="works-empty" data-works-empty hidden>
+				<p>{t('works.empty')}</p>
+				<button type="button" class="btn-primary" data-works-reset>
+					{t('works.reset')}
+				</button>
+			</div>
+		</div>
+
+		<div class="cursor-preview" data-cursor-preview aria-hidden="true">
+			<img
+				src="/works/smart-greenhouse-monitor.svg"
+				alt=""
+				width="360"
+				height="225"
+				data-cursor-img
+			/>
+		</div>
+	</section>
+</Layout>
+
+<style>
+	.works-page {
+		padding-block: clamp(2.5rem, 6vw, 5rem);
+		position: relative;
+	}
+
+	.works-hero {
+		margin-bottom: 2.5rem;
+	}
+
+	.works-title {
+		font-size: clamp(2.25rem, 4.5vw, 3.75rem);
+		margin-bottom: 0.5rem;
+	}
+
+	.works-sub {
+		color: var(--muted);
+		max-width: 62ch;
+	}
+
+	.works-toolbar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding-bottom: 1.25rem;
+		border-bottom: 1.5px solid var(--fg);
+		margin-bottom: 0;
+		flex-wrap: wrap;
+	}
+
+	.filter-group,
+	.view-group {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.toolbar-btn {
+		min-height: 44px;
+		padding: 0.375rem 0.875rem;
+		background-color: transparent;
+		color: var(--fg);
+		border: 1px solid var(--border-strong);
+		border-radius: 2px;
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.8125rem;
+		transition: background-color 0.15s ease, color 0.15s ease;
+	}
+
+	.toolbar-btn:hover,
+	.toolbar-btn.is-active {
+		background-color: var(--inv-bg);
+		color: var(--inv-fg);
+		border-color: var(--inv-bg);
+	}
+
+	.list-head {
+		display: grid;
+		grid-template-columns: 64px 1fr 150px 90px;
+		gap: 1.25rem;
+		padding: 0.875rem 1rem;
+		border-bottom: 1px solid var(--line);
+		background-color: var(--surface);
+	}
+
+	.works-container[data-view-mode='grid'] .list-head {
+		display: none;
+	}
+
+	.works-container[data-view-mode='grid'] {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+		gap: 1.5rem;
+		padding-top: 1.5rem;
+	}
+
+	.work-item {
+		border-bottom: 1px solid var(--line);
+	}
+
+	.works-container[data-view-mode='grid'] .work-item {
+		border: 1.5px solid var(--border-strong);
+		background-color: var(--surface);
+	}
+
+	.work-link {
+		display: grid;
+		grid-template-columns: 64px 1fr 150px 90px;
+		gap: 1.25rem;
+		padding: 1.5rem 1rem;
+		align-items: baseline;
+		transition: background-color 0.15s ease, color 0.15s ease;
+	}
+
+	.works-container[data-view-mode='list'] .work-link:hover {
+		background-color: var(--inv-bg);
+		color: var(--inv-fg);
+	}
+
+	.works-container[data-view-mode='list'] .work-link:hover .mono-meta,
+	.works-container[data-view-mode='list'] .work-link:hover .work-item-summary {
+		color: var(--inv-fg);
+	}
+
+	.works-container[data-view-mode='list'] .work-link:hover .placeholder-tag {
+		background-color: var(--inv-fg);
+		color: var(--inv-bg);
+	}
+
+	.work-cover-thumb {
+		display: none;
+	}
+
+	.works-container[data-view-mode='grid'] .work-link {
+		grid-template-columns: 1fr;
+		padding: 0;
+		gap: 0;
+	}
+
+	.works-container[data-view-mode='grid'] .work-cover-thumb {
+		display: block;
+		border-bottom: 1px solid var(--line);
+	}
+
+	.works-container[data-view-mode='grid'] .work-num,
+	.works-container[data-view-mode='grid'] .work-cat,
+	.works-container[data-view-mode='grid'] .work-year {
+		display: none;
+	}
+
+	.works-container[data-view-mode='grid'] .work-main {
+		padding: 1.25rem;
+	}
+
+	.work-title-row {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+		margin-bottom: 0.375rem;
+	}
+
+	.work-item-title {
+		font-size: clamp(1.25rem, 2vw, 1.65rem);
+	}
+
+	.work-item-summary {
+		color: var(--muted);
+		font-size: 0.9375rem;
+		margin-bottom: 0.75rem;
+		max-width: 65ch;
+	}
+
+	.work-item-stack {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.375rem;
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.work-item-stack li {
+		padding: 0.125rem 0.45rem;
+		border: 1px solid var(--border-strong);
+	}
+
+	.works-empty {
+		padding: 3rem 1.5rem;
+		border: 1px solid var(--line);
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.works-empty[hidden] {
+		display: none;
+	}
+
+	.cursor-preview {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 340px;
+		pointer-events: none;
+		z-index: 80;
+		opacity: 0;
+		transform: scale(0.94);
+		transition: opacity 0.2s ease, transform 0.2s ease;
+		border: 2px solid var(--fg);
+		background-color: var(--surface);
+	}
+
+	.cursor-preview.is-visible {
+		opacity: 1;
+		transform: scale(1);
+	}
+
+	@media (max-width: 860px) {
+		.list-head,
+		.view-group,
+		.cursor-preview {
+			display: none;
+		}
+
+		.work-link {
+			grid-template-columns: 1fr;
+			padding: 1.25rem 0;
+			gap: 0.75rem;
+		}
+
+		.work-cover-thumb {
+			display: block;
+			border: 1px solid var(--border-strong);
+		}
+	}
+</style>

@@ -1,0 +1,222 @@
+:root {
+	--bg: #f4f4f2;
+	--surface: #eaeae7;
+	--fg: #111111;
+	--muted: #555551;
+	--line: #d6d6d2;
+	--border-strong: #6e6e69;
+	--inv-bg: #111111;
+	--inv-fg: #f4f4f2;
+	--nav-pill-bg: #111111;
+	--nav-pill-fg: #f4f4f2;
+	--nav-pill-cta-bg: #f4f4f2;
+	--nav-pill-cta-fg: #111111;
+	color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	background-color: var(--bg);
+	color: var(--fg);
+	font-family: 'IBM Plex Sans Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+	font-size: 16px;
+	line-height: 1.6;
+	-webkit-font-smoothing: antialiased;
+	text-rendering: optimizeLegibility;
+	scroll-padding-top: 6rem;
+}
+
+body {
+	margin: 0;
+	min-height: 100dvh;
+	background-color: var(--bg);
+	color: var(--fg);
+	overflow-x: clip;
+	transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+h1,
+h2,
+h3,
+h4 {
+	font-family: 'Bricolage Grotesque Variable', sans-serif;
+	font-weight: 600;
+	line-height: 1.08;
+	letter-spacing: -0.025em;
+	margin: 0;
+}
+
+p {
+	margin: 0;
+}
+
+a {
+	color: inherit;
+	text-decoration: none;
+}
+
+img,
+video,
+canvas,
+svg {
+	display: block;
+	max-width: 100%;
+}
+
+/* R-39 base pointer cursor for all interactive elements */
+a[href],
+button:not(:disabled),
+summary,
+select:not(:disabled),
+label[for],
+[role='button']:not([aria-disabled='true']),
+[role='tab']:not([aria-disabled='true']),
+[role='switch']:not([aria-disabled='true']) {
+	cursor: pointer;
+}
+
+button:disabled,
+select:disabled,
+[aria-disabled='true'] {
+	cursor: not-allowed;
+}
+
+/* R-32 high-contrast focus indicator (3:1+ against background) */
+:focus-visible {
+	outline: 2px solid var(--fg);
+	outline-offset: 3px;
+}
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+.skip-link {
+	position: fixed;
+	top: -100%;
+	left: 1rem;
+	z-index: 1000;
+	padding: 0.75rem 1.25rem;
+	background: var(--inv-bg);
+	color: var(--inv-fg);
+	font-family: 'IBM Plex Mono', monospace;
+	font-size: 0.875rem;
+	border: 2px solid var(--fg);
+}
+
+.skip-link:focus-visible {
+	top: 1rem;
+}
+
+.container {
+	width: 100%;
+	max-width: 1360px;
+	margin-inline: auto;
+	padding-inline: clamp(1.25rem, 4vw, 3.5rem);
+}
+
+.mono-meta {
+	font-family: 'IBM Plex Mono', monospace;
+	font-size: 0.8125rem;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: 0.02em;
+	color: var(--muted);
+}
+
+.section-header {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 1rem;
+	padding-bottom: 1rem;
+	border-bottom: 1px solid var(--line);
+	margin-bottom: clamp(2rem, 4vw, 3.5rem);
+	flex-wrap: wrap;
+}
+
+.section-index {
+	font-family: 'IBM Plex Mono', monospace;
+	font-size: 0.8125rem;
+	font-variant-numeric: tabular-nums;
+	color: var(--muted);
+}
+
+.btn-primary,
+.btn-secondary {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.625rem;
+	min-height: 44px;
+	padding: 0.625rem 1.375rem;
+	font-family: 'IBM Plex Sans Variable', sans-serif;
+	font-size: 0.9375rem;
+	font-weight: 500;
+	border-radius: 2px;
+	transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.btn-primary {
+	background-color: var(--inv-bg);
+	color: var(--inv-fg);
+	border: 1.5px solid var(--inv-bg);
+}
+
+.btn-primary:hover {
+	background-color: transparent;
+	color: var(--fg);
+	border-color: var(--fg);
+}
+
+.btn-primary:active,
+.btn-secondary:active {
+	transform: translateY(1px);
+}
+
+.btn-secondary {
+	background-color: transparent;
+	color: var(--fg);
+	border: 1.5px solid var(--border-strong);
+}
+
+.btn-secondary:hover {
+	background-color: var(--inv-bg);
+	color: var(--inv-fg);
+	border-color: var(--inv-bg);
+}
+
+.placeholder-tag {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.1875rem 0.5rem;
+	font-family: 'IBM Plex Mono', monospace;
+	font-size: 0.75rem;
+	color: var(--fg);
+	background-color: var(--surface);
+	border: 1px solid var(--border-strong);
+	border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}

@@ -1,0 +1,142 @@
+---
+import { profile } from '../data/profile';
+import { type Lang, useTranslations } from '../i18n/utils';
+
+interface Props {
+	lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+	<div class="container footer-grid">
+		<div class="footer-col">
+			<p class="mono-meta">{t('footer.clock')}</p>
+			<p class="clock-readout" data-wib-clock>--:--:-- WIB</p>
+		</div>
+
+		<div class="footer-col">
+			<p class="mono-meta">Direct Channels</p>
+			<div class="footer-links">
+				<a href={profile.socials.whatsapp.url} target="_blank" rel="noopener noreferrer" class="footer-link">
+					WhatsApp
+				</a>
+				<a href={profile.socials.linkedin.url} target="_blank" rel="noopener noreferrer" class="footer-link">
+					LinkedIn
+				</a>
+				<a href={profile.socials.instagram.url} target="_blank" rel="noopener noreferrer" class="footer-link">
+					Instagram
+				</a>
+			</div>
+		</div>
+
+		<div class="footer-col footer-meta">
+			<p class="mono-meta">&copy; {year} {profile.fullName}. {t('footer.rights')}</p>
+			<p class="mono-meta">{t('footer.credit')}</p>
+		</div>
+	</div>
+</footer>
+
+<script>
+	function initClock() {
+		const els = document.querySelectorAll<HTMLElement>('[data-wib-clock]');
+		if (els.length === 0) return;
+
+		const formatter = new Intl.DateTimeFormat('en-GB', {
+			timeZone: 'Asia/Jakarta',
+			hour: '2-digit',
+			minute: '2-digit',
+			second: '2-digit',
+			hour12: false,
+		});
+
+		function tick() {
+			const now = `${formatter.format(new Date())} WIB`;
+			els.forEach((el) => {
+				el.textContent = now;
+			});
+		}
+
+		tick();
+		const id = window.setInterval(tick, 1000);
+		document.addEventListener(
+			'astro:before-swap',
+			() => {
+				window.clearInterval(id);
+			},
+			{ once: true },
+		);
+	}
+
+	document.addEventListener('astro:page-load', initClock);
+</script>
+
+<style>
+	.site-footer {
+		border-top: 1px solid var(--line);
+		padding-block: clamp(2.5rem, 5vw, 4rem);
+		background-color: var(--surface);
+	}
+
+	.footer-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr 1.5fr;
+		gap: 2rem;
+		align-items: start;
+	}
+
+	.footer-col {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.clock-readout {
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 1.125rem;
+		font-weight: 500;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.footer-links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.footer-link {
+		display: inline-flex;
+		align-items: center;
+		min-height: 44px;
+		padding-inline: 0.75rem;
+		border: 1px solid var(--border-strong);
+		border-radius: 2px;
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.8125rem;
+		transition: background-color 0.15s ease, color 0.15s ease;
+	}
+
+	.footer-link:hover {
+		background-color: var(--inv-bg);
+		color: var(--inv-fg);
+	}
+
+	@media (max-width: 900px) {
+		.footer-grid {
+			grid-template-columns: 1fr 1fr;
+		}
+
+		.footer-meta {
+			grid-column: 1 / -1;
+		}
+	}
+
+	@media (max-width: 580px) {
+		.footer-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

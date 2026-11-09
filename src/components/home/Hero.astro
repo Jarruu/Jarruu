@@ -1,0 +1,269 @@
+---
+import { Image } from 'astro:assets';
+import bgHero from '../../assets/bg-hero.webp';
+import { profile } from '../../data/profile';
+import { type Lang, useTranslations } from '../../i18n/utils';
+
+interface Props {
+	lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<section class="hero-section" data-hero-root>
+	<div class="hero-bg" aria-hidden="true">
+		<Image src={bgHero} alt="" widths={[960, 1440, 1920]} sizes="100vw" loading="eager" fetchpriority="high" />
+	</div>
+	<div class="container hero-grid">
+		<div class="hero-copy">
+			<p class="section-index" data-hero-reveal>{t('hero.index')}</p>
+			<h1 class="hero-title" data-hero-reveal>{t('hero.greeting')}</h1>
+			<p class="mono-meta hero-aka" data-hero-reveal>{t('hero.aka')}</p>
+			<p class="hero-role" data-hero-reveal>{t('hero.role')}</p>
+			<p class="hero-summary" data-hero-reveal>{t('hero.summary')}</p>
+
+			<div class="hero-actions" data-hero-reveal>
+				<a href="#selected-works" class="btn-primary">
+					{t('hero.cta.work')}
+				</a>
+				<a
+					href={profile.socials.whatsapp.url}
+					target="_blank"
+					rel="noopener noreferrer"
+					class="btn-secondary"
+				>
+					{t('hero.cta.contact')}
+				</a>
+			</div>
+
+			<dl class="hero-specs" data-hero-reveal>
+				<div class="spec-cell">
+					<dt class="mono-meta">Laboratory</dt>
+					<dd>RES Lab, Unand</dd>
+				</div>
+				<div class="spec-cell">
+					<dt class="mono-meta">Domains</dt>
+					<dd>Firmware · Vision · Web</dd>
+				</div>
+				<div class="spec-cell">
+					<dt class="mono-meta">Local Time</dt>
+					<dd data-wib-clock>--:--:-- WIB</dd>
+				</div>
+			</dl>
+		</div>
+
+		<div class="hero-stage-wrap">
+			<div class="canvas-holder">
+				<canvas
+					class="hero-canvas"
+					data-hero-canvas
+					aria-label="Interactive 3D robot model"
+				></canvas>
+
+				<div class="stage-status" data-hero-status role="status" aria-live="polite">
+					<span class="mono-meta">{t('hero.scene.loading')}</span>
+					<strong class="mono-meta" data-hero-percent>0%</strong>
+				</div>
+
+				<div class="stage-fallback" data-hero-fallback hidden>
+					<img
+						src="/works/smart-greenhouse-monitor.svg"
+						alt="Static technical schematic fallback"
+						width="1000"
+						height="625"
+						fetchpriority="high"
+					/>
+					<p class="mono-meta">{t('hero.scene.fallback')}</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<style>
+	.hero-section {
+		position: relative;
+		isolation: isolate;
+		padding-block: clamp(2rem, 5vw, 4.5rem);
+		border-bottom: 1px solid var(--line);
+	}
+
+	/* Extend the artwork up behind the transparent sticky navbar so no page
+	   background shows above it. Only the background moves, not the content. */
+	.hero-bg {
+		position: absolute;
+		inset: calc(-1 * (1.5rem + 3.75rem + 8px)) 0 0;
+		z-index: -1;
+		overflow: hidden;
+	}
+
+	.hero-bg :global(img) {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		object-position: center right;
+	}
+
+	.hero-grid {
+		display: grid;
+		grid-template-columns: 1.05fr 1.15fr;
+		gap: clamp(2rem, 4vw, 3.5rem);
+		align-items: center;
+	}
+
+	.hero-copy {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		color: var(--inv-fg);
+	}
+
+	.hero-copy .section-index,
+	.hero-copy .mono-meta {
+		color: color-mix(in srgb, var(--inv-fg) 64%, transparent);
+	}
+
+	.hero-copy .hero-summary {
+		color: color-mix(in srgb, var(--inv-fg) 78%, transparent);
+	}
+
+	.hero-copy .btn-primary {
+		background-color: var(--inv-fg);
+		color: var(--inv-bg);
+		border-color: var(--inv-fg);
+	}
+
+	.hero-copy .btn-primary:hover {
+		background-color: transparent;
+		color: var(--inv-fg);
+		border-color: var(--inv-fg);
+	}
+
+	.hero-copy .btn-secondary {
+		color: var(--inv-fg);
+		border-color: color-mix(in srgb, var(--inv-fg) 45%, transparent);
+	}
+
+	.hero-copy .btn-secondary:hover {
+		background-color: var(--inv-fg);
+		color: var(--inv-bg);
+		border-color: var(--inv-fg);
+	}
+
+	.hero-copy .hero-specs {
+		border-top-color: color-mix(in srgb, var(--inv-fg) 22%, transparent);
+	}
+
+	.hero-copy :focus-visible {
+		outline-color: var(--inv-fg);
+	}
+
+	.hero-title {
+		font-size: clamp(2.5rem, 5.2vw, 4.5rem);
+		line-height: 1.02;
+		letter-spacing: -0.035em;
+	}
+
+	.hero-aka {
+		margin-top: -0.25rem;
+	}
+
+	.hero-role {
+		font-family: 'Bricolage Grotesque Variable', sans-serif;
+		font-size: clamp(1.25rem, 2.2vw, 1.65rem);
+		font-weight: 600;
+		padding-top: 0.25rem;
+	}
+
+	.hero-summary {
+		font-size: clamp(1rem, 1.2vw, 1.125rem);
+		color: var(--muted);
+		max-width: 54ch;
+	}
+
+	.hero-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		padding-top: 0.5rem;
+	}
+
+	.hero-specs {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 0.75rem;
+		margin: 1rem 0 0;
+		padding-top: 1.25rem;
+		border-top: 1px solid var(--line);
+	}
+
+	.spec-cell {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	.spec-cell dd {
+		margin: 0;
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.875rem;
+		font-weight: 500;
+	}
+
+	.canvas-holder {
+		position: relative;
+		width: 100%;
+		aspect-ratio: 4 / 3;
+		min-height: 360px;
+	}
+
+	.hero-canvas {
+		width: 100%;
+		height: 100%;
+		display: block;
+		cursor: grab;
+	}
+
+	.stage-status,
+	.stage-fallback {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		padding: 1.5rem;
+		color: var(--inv-fg);
+		text-align: center;
+		pointer-events: none;
+	}
+
+	.stage-fallback img {
+		max-width: 100%;
+		height: auto;
+	}
+
+	.stage-status[hidden],
+	.stage-fallback[hidden] {
+		display: none;
+	}
+
+	@media (max-width: 1024px) {
+		.hero-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (max-width: 600px) {
+		.hero-specs {
+			grid-template-columns: 1fr;
+		}
+
+		.canvas-holder {
+			min-height: 270px;
+		}
+	}
+</style>

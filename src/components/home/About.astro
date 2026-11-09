@@ -1,0 +1,149 @@
+---
+import { type Lang, useTranslations } from '../../i18n/utils';
+
+interface Props {
+	lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const statementWords = t('about.statement').split(' ');
+
+const disciplines = [
+	{
+		code: '02.A',
+		title: t('about.d1.title'),
+		desc: t('about.d1.desc'),
+		spec: 'TypeScript · Node.js · SQL · REST API',
+	},
+	{
+		code: '02.B',
+		title: t('about.d2.title'),
+		desc: t('about.d2.desc'),
+		spec: 'Python · OpenCV · YOLO · ONNX / TFLite',
+	},
+	{
+		code: '02.C',
+		title: t('about.d3.title'),
+		desc: t('about.d3.desc'),
+		spec: 'C/C++ · ESP32 · I2C/SPI/UART · MQTT',
+	},
+];
+---
+
+<section id="about" class="about-section">
+	<div class="container">
+		<div class="section-header">
+			<span class="section-index">{t('about.index')}</span>
+			<span class="mono-meta">UNIVERSITAS ANDALAS // COMPUTER ENGINEERING</span>
+		</div>
+
+		<div class="about-lead">
+			<h2 class="about-heading" data-reveal>{t('about.heading')}</h2>
+			<p class="about-statement" data-about-statement>
+				{
+					statementWords.map((word) => (
+						<>
+							<span class="scrub-word" data-scrub-word>{word}</span>{' '}
+						</>
+					))
+				}
+			</p>
+		</div>
+
+		<div class="discipline-table">
+			{
+				disciplines.map((item) => (
+					<article class="discipline-row" data-reveal>
+						<div class="row-code mono-meta">{item.code}</div>
+						<h3 class="row-title">{item.title}</h3>
+						<p class="row-desc">{item.desc}</p>
+						<div class="row-spec mono-meta">{item.spec}</div>
+					</article>
+				))
+			}
+		</div>
+	</div>
+</section>
+
+<style>
+	.about-section {
+		padding-block: clamp(3.5rem, 7vw, 6.5rem);
+		border-bottom: 1px solid var(--line);
+	}
+
+	.about-lead {
+		display: grid;
+		grid-template-columns: 1fr 1.25fr;
+		gap: clamp(1.5rem, 4vw, 3.5rem);
+		margin-bottom: clamp(2.5rem, 5vw, 4rem);
+		align-items: start;
+	}
+
+	.about-heading {
+		font-size: clamp(1.75rem, 3.2vw, 2.75rem);
+	}
+
+	.about-statement {
+		font-size: clamp(1.125rem, 1.6vw, 1.375rem);
+		line-height: 1.55;
+	}
+
+	.scrub-word {
+		display: inline;
+	}
+
+	.discipline-table {
+		border-top: 1.5px solid var(--fg);
+	}
+
+	.discipline-row {
+		display: grid;
+		grid-template-columns: 90px 1.1fr 1.5fr 1fr;
+		gap: 1.5rem;
+		padding-block: 1.5rem;
+		border-bottom: 1px solid var(--line);
+		align-items: baseline;
+	}
+
+	.row-title {
+		font-size: 1.25rem;
+	}
+
+	.row-desc {
+		color: var(--muted);
+		font-size: 0.96875rem;
+	}
+
+	.row-spec {
+		text-align: right;
+	}
+
+	@media (max-width: 960px) {
+		.about-lead {
+			grid-template-columns: 1fr;
+		}
+
+		.discipline-row {
+			grid-template-columns: 72px 1fr;
+			gap: 0.5rem 1rem;
+		}
+
+		.row-desc,
+		.row-spec {
+			grid-column: 2;
+			text-align: left;
+		}
+	}
+
+	@media (max-width: 560px) {
+		.discipline-row {
+			grid-template-columns: 1fr;
+		}
+
+		.row-desc,
+		.row-spec {
+			grid-column: 1;
+		}
+	}
+</style>

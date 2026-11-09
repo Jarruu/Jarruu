@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 625" width="1000" height="625">
+	<rect width="1000" height="625" fill="#EAEAE7" />
+	<rect x="36" y="36" width="928" height="553" fill="none" stroke="#111111" stroke-width="2" />
+	<line x1="36" y1="104" x2="964" y2="104" stroke="#111111" stroke-width="1.5" />
+	<line x1="36" y1="515" x2="964" y2="515" stroke="#111111" stroke-width="1.5" />
+	<text x="64" y="78" fill="#111111" font-family="monospace" font-size="15" font-weight="bold">SPEC-02 // COMPUTER VISION</text>
+	<rect x="700" y="54" width="236" height="32" fill="#111111" />
+	<text x="818" y="75" fill="#F4F4F2" font-family="monospace" font-size="13" text-anchor="middle">PLACEHOLDER SCHEMATIC</text>
+	<rect x="140" y="170" width="490" height="270" fill="none" stroke="#111111" stroke-width="2" />
+	<rect x="185" y="220" width="180" height="120" fill="none" stroke="#111111" stroke-width="2" stroke-dasharray="6 4" />
+	<rect x="185" y="196" width="150" height="24" fill="#111111" />
+	<text x="195" y="213" fill="#F4F4F2" font-family="monospace" font-size="12">SOLDER_BRIDGE 0.94</text>
+	<rect x="410" y="265" width="165" height="115" fill="none" stroke="#111111" stroke-width="2" stroke-dasharray="6 4" />
+	<rect x="410" y="241" width="142" height="24" fill="#111111" />
+	<text x="420" y="258" fill="#F4F4F2" font-family="monospace" font-size="12">MISSING_PAD 0.89</text>
+	<rect x="665" y="170" width="195" height="270" fill="none" stroke="#111111" stroke-width="1.5" />
+	<text x="690" y="215" fill="#111111" font-family="monospace" font-size="13">MODEL: YOLOV8N</text>
+	<text x="690" y="250" fill="#111111" font-family="monospace" font-size="13">INPUT: 640x640</text>
+	<text x="690" y="285" fill="#111111" font-family="monospace" font-size="13">NMS IOU: 0.45</text>
+	<text x="690" y="320" fill="#111111" font-family="monospace" font-size="13">CONF: &gt;= 0.65</text>
+	<text x="690" y="355" fill="#111111" font-family="monospace" font-size="13">RUNTIME: ONNX</text>
+	<text x="64" y="552" fill="#111111" font-family="sans-serif" font-size="22" font-weight="bold">PCB SOLDER DEFECT DETECTION PIPELINE</text>
+	<text x="64" y="576" fill="#555551" font-family="monospace" font-size="13">PYTHON · OPENCV · YOLO OBJECT DETECTION</text>
+</svg>

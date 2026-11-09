@@ -1,0 +1,31 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../layouts/Layout.astro';
+import Hero from '../components/home/Hero.astro';
+import About from '../components/home/About.astro';
+import Showcase from '../components/home/Showcase.astro';
+import Experience from '../components/home/Experience.astro';
+import Skills from '../components/home/Skills.astro';
+import Contact from '../components/home/Contact.astro';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+	lang: Lang;
+}
+
+const { lang } = Astro.props;
+const allLocaleWorks = await getCollection('works', (entry) => entry.data.lang === lang);
+const featuredWorks = allLocaleWorks
+	.filter((entry) => entry.data.featured)
+	.sort((a, b) => a.data.order - b.data.order)
+	.slice(0, 3);
+---
+
+<Layout lang={lang}>
+	<Hero lang={lang} />
+	<About lang={lang} />
+	<Showcase lang={lang} featuredWorks={featuredWorks} />
+	<Experience lang={lang} />
+	<Skills lang={lang} />
+	<Contact lang={lang} />
+</Layout>

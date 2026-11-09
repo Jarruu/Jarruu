@@ -1,0 +1,447 @@
+---
+import { Image } from 'astro:assets';
+import brandIcon from '../assets/icon.png';
+import { type Lang, useTranslations, localePath, switchLocaleUrl } from '../i18n/utils';
+
+interface Props {
+	lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const homeUrl = localePath(lang, '');
+const here = Astro.url.pathname.replace(/\/$/, '');
+const homeBase = homeUrl.replace(/\/$/, '');
+const isHomeActive = here === homeBase;
+const langOptions = [
+	{ code: 'en' as const, label: 'EN', name: t('nav.lang.en') },
+	{ code: 'id' as const, label: 'ID', name: t('nav.lang.id') },
+];
+---
+
+<header class="site-header">
+	<div class="container">
+		<div class="nav-bar">
+			<a href={homeUrl} class="brand-link" aria-label={t('nav.brand')}>
+				<Image class="brand-mark" src={brandIcon} alt="" width={30} height={30} loading="eager" />
+				<span class="brand-name">Fajar</span>
+			</a>
+
+			<nav class="primary-nav" aria-label={t('nav.primary')}>
+				<a href={homeUrl} class="nav-link" aria-current={isHomeActive ? 'page' : undefined}>
+					{t('nav.home')}
+				</a>
+				<a href={`${homeUrl}#about`} class="nav-link">{t('nav.about')}</a>
+				<a href={`${homeUrl}#experience`} class="nav-link">{t('nav.experience')}</a>
+				<a href={`${homeUrl}#specs`} class="nav-link">{t('nav.skills')}</a>
+				<a href={`${homeUrl}#contact`} class="nav-link">{t('nav.contact')}</a>
+			</nav>
+
+			<div class="nav-controls">
+				<div class="lang-switch" role="group" aria-label={t('nav.langGroup')}>
+					{
+						langOptions.map((opt) =>
+							opt.code === lang ? (
+								<span class="lang-option active" aria-current="true" aria-label={opt.name} lang={opt.code}>
+									{opt.label}
+								</span>
+							) : (
+								<a
+									href={switchLocaleUrl(Astro.url, opt.code)}
+									class="lang-option"
+									hreflang={opt.code}
+									lang={opt.code}
+									aria-label={opt.name}
+								>
+									{opt.label}
+								</a>
+							)
+						)
+					}
+				</div>
+
+				<a href={`${homeUrl}#contact`} class="nav-cta">{t('nav.cta')}</a>
+
+				<button
+					type="button"
+					class="control-btn menu-toggle"
+					data-menu-toggle
+					data-open-label={t('nav.menu')}
+					data-close-label={t('nav.close')}
+					aria-label={t('nav.menu')}
+					aria-expanded="false"
+					aria-controls="mobile-nav-drawer"
+				>
+					<span class="menu-icon" aria-hidden="true"></span>
+				</button>
+			</div>
+		</div>
+
+		<div id="mobile-nav-drawer" class="mobile-drawer" data-mobile-drawer hidden>
+			<nav class="mobile-drawer-nav" aria-label={t('nav.mobilePrimary')}>
+				<a
+					href={homeUrl}
+					class="mobile-link"
+					data-mobile-link
+					aria-current={isHomeActive ? 'page' : undefined}
+				>
+					<span class="mono-meta">01</span>
+					<span>{t('nav.home')}</span>
+				</a>
+				<a href={`${homeUrl}#about`} class="mobile-link" data-mobile-link>
+					<span class="mono-meta">02</span>
+					<span>{t('nav.about')}</span>
+				</a>
+				<a href={`${homeUrl}#experience`} class="mobile-link" data-mobile-link>
+					<span class="mono-meta">03</span>
+					<span>{t('nav.experience')}</span>
+				</a>
+				<a href={`${homeUrl}#specs`} class="mobile-link" data-mobile-link>
+					<span class="mono-meta">04</span>
+					<span>{t('nav.skills')}</span>
+				</a>
+				<a href={`${homeUrl}#contact`} class="mobile-link" data-mobile-link>
+					<span class="mono-meta">05</span>
+					<span>{t('nav.contact')}</span>
+				</a>
+				<a href={`${homeUrl}#contact`} class="mobile-cta" data-mobile-link>
+					{t('nav.cta')}
+				</a>
+			</nav>
+		</div>
+	</div>
+</header>
+
+<script>
+	// astro:page-load fires on every navigation; the window keydown listener would stack.
+	let navAbort: AbortController | undefined;
+
+	function setupHeaderControls() {
+		navAbort?.abort();
+		const { signal } = (navAbort = new AbortController());
+
+		const header = document.querySelector<HTMLElement>('.site-header');
+		if (!header) return;
+
+		const menuBtn = header.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+		const drawer = header.querySelector<HTMLElement>('[data-mobile-drawer]');
+		const mobileLinks = header.querySelectorAll<HTMLAnchorElement>('[data-mobile-link]');
+
+		function setMenuOpen(open: boolean, returnFocus = false) {
+			if (!menuBtn || !drawer) return;
+			menuBtn.setAttribute('aria-expanded', String(open));
+			menuBtn.setAttribute(
+				'aria-label',
+				(open ? menuBtn.dataset.closeLabel : menuBtn.dataset.openLabel) || 'Menu'
+			);
+			drawer.hidden = !open;
+			if (returnFocus) menuBtn.focus();
+		}
+
+		menuBtn?.addEventListener(
+			'click',
+			() => setMenuOpen(menuBtn.getAttribute('aria-expanded') !== 'true'),
+			{ signal }
+		);
+		mobileLinks.forEach((link) => link.addEventListener('click', () => setMenuOpen(false), { signal }));
+		window.addEventListener(
+			'keydown',
+			(e) => {
+				if (e.key === 'Escape' && menuBtn?.getAttribute('aria-expanded') === 'true') {
+					setMenuOpen(false, true);
+				}
+			},
+			{ signal }
+		);
+	}
+
+	document.addEventListener('astro:page-load', setupHeaderControls);
+</script>
+
+<style>
+	.site-header {
+		position: sticky;
+		top: 0;
+		z-index: 60;
+		padding-block: 0.75rem;
+		/* Transparent strip: let clicks through to content behind it. */
+		pointer-events: none;
+	}
+
+	.nav-bar,
+	.mobile-drawer {
+		pointer-events: auto;
+	}
+
+	/* Floating dark pill, matching the reference navbar while staying monochrome. */
+	.nav-bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		min-height: 3.75rem;
+		padding: 0.5rem 0.5rem 0.5rem 1.125rem;
+		background-color: var(--nav-pill-bg);
+		color: var(--nav-pill-fg);
+		border: 1px solid color-mix(in srgb, var(--nav-pill-fg) 12%, transparent);
+		border-radius: 14px;
+	}
+
+	/* Global focus ring is --fg, invisible on the dark pill. */
+	.nav-bar :focus-visible,
+	.mobile-drawer :focus-visible {
+		outline-color: var(--nav-pill-fg);
+	}
+
+	.brand-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.625rem;
+		min-height: 44px;
+		flex-shrink: 0;
+	}
+
+	.brand-mark {
+		width: 30px;
+		height: 30px;
+		border-radius: 7px;
+	}
+
+	.brand-name {
+		font-family: 'Bricolage Grotesque Variable', sans-serif;
+		font-size: 1.125rem;
+		font-weight: 700;
+		letter-spacing: -0.03em;
+	}
+
+	.primary-nav {
+		display: flex;
+		align-items: center;
+		gap: 0.125rem;
+	}
+
+	.nav-link {
+		display: inline-flex;
+		align-items: center;
+		min-height: 40px;
+		padding-inline: 0.625rem;
+		font-size: 0.9375rem;
+		font-weight: 500;
+		color: color-mix(in srgb, var(--nav-pill-fg) 62%, transparent);
+		border-radius: 8px;
+		transition: color 0.15s ease, background-color 0.15s ease;
+	}
+
+	.nav-link:hover {
+		color: var(--nav-pill-fg);
+		background-color: color-mix(in srgb, var(--nav-pill-fg) 10%, transparent);
+	}
+
+	.nav-link[aria-current='page'] {
+		color: var(--nav-pill-fg);
+		background-color: color-mix(in srgb, var(--nav-pill-fg) 12%, transparent);
+	}
+
+	.nav-controls {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-shrink: 0;
+	}
+
+	.control-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.375rem;
+		min-height: 44px;
+		min-width: 44px;
+		padding: 0.375rem 0.75rem;
+		background-color: transparent;
+		color: var(--nav-pill-fg);
+		border: 1px solid color-mix(in srgb, var(--nav-pill-fg) 22%, transparent);
+		border-radius: 8px;
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.8125rem;
+		transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+	}
+
+	.control-btn:hover {
+		background-color: color-mix(in srgb, var(--nav-pill-fg) 12%, transparent);
+		border-color: color-mix(in srgb, var(--nav-pill-fg) 34%, transparent);
+	}
+
+	/* Segmented language switch: active locale is filled, inactive is quiet. */
+	.lang-switch {
+		display: inline-flex;
+		align-items: stretch;
+		gap: 2px;
+		padding: 2px;
+		min-height: 44px;
+		border: 1px solid color-mix(in srgb, var(--nav-pill-fg) 22%, transparent);
+		border-radius: 8px;
+	}
+
+	.lang-option {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 42px;
+		padding-inline: 0.5rem;
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.75rem;
+		font-weight: 500;
+		letter-spacing: 0.08em;
+		color: color-mix(in srgb, var(--nav-pill-fg) 58%, transparent);
+		border-radius: 6px;
+		transition: background-color 0.15s ease, color 0.15s ease;
+	}
+
+	.lang-option:focus-visible {
+		outline-offset: -3px;
+	}
+
+	.lang-option:hover {
+		background-color: color-mix(in srgb, var(--nav-pill-fg) 12%, transparent);
+		color: var(--nav-pill-fg);
+	}
+
+	.lang-option.active {
+		background-color: var(--nav-pill-cta-bg);
+		color: var(--nav-pill-cta-fg);
+		font-weight: 600;
+	}
+
+	.nav-cta {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 44px;
+		padding-inline: 1.125rem;
+		background-color: var(--nav-pill-cta-bg);
+		color: var(--nav-pill-cta-fg);
+		border-radius: 9px;
+		font-size: 0.9375rem;
+		font-weight: 600;
+		white-space: nowrap;
+		transition: background-color 0.15s ease, color 0.15s ease;
+	}
+
+	.nav-cta:hover {
+		background-color: color-mix(in srgb, var(--nav-pill-cta-bg) 84%, var(--nav-pill-bg));
+	}
+
+	.menu-toggle {
+		display: none;
+	}
+
+	.menu-icon,
+	.menu-icon::before,
+	.menu-icon::after {
+		width: 18px;
+		height: 1.5px;
+		background-color: currentColor;
+		transition: transform 0.2s ease, opacity 0.2s ease;
+	}
+
+	.menu-icon {
+		position: relative;
+		display: block;
+	}
+
+	.menu-icon::before,
+	.menu-icon::after {
+		content: '';
+		position: absolute;
+		left: 0;
+	}
+
+	.menu-icon::before {
+		top: -6px;
+	}
+
+	.menu-icon::after {
+		top: 6px;
+	}
+
+	.menu-toggle[aria-expanded='true'] .menu-icon {
+		background-color: transparent;
+	}
+
+	.menu-toggle[aria-expanded='true'] .menu-icon::before {
+		top: 0;
+		transform: rotate(45deg);
+	}
+
+	.menu-toggle[aria-expanded='true'] .menu-icon::after {
+		top: 0;
+		transform: rotate(-45deg);
+	}
+
+	.mobile-drawer {
+		margin-top: 0.5rem;
+		padding-block: 0.5rem;
+		background-color: var(--nav-pill-bg);
+		color: var(--nav-pill-fg);
+		border: 1px solid color-mix(in srgb, var(--nav-pill-fg) 12%, transparent);
+		border-radius: 14px;
+	}
+
+	.mobile-drawer-nav {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.mobile-link {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		min-height: 48px;
+		padding-inline: 0.75rem;
+		border-bottom: 1px solid color-mix(in srgb, var(--nav-pill-fg) 12%, transparent);
+		font-family: 'Bricolage Grotesque Variable', sans-serif;
+		font-size: 1.25rem;
+		font-weight: 600;
+	}
+
+	.mobile-link .mono-meta {
+		color: color-mix(in srgb, var(--nav-pill-fg) 55%, transparent);
+	}
+
+	.mobile-link:hover {
+		background-color: color-mix(in srgb, var(--nav-pill-fg) 10%, transparent);
+	}
+
+	.mobile-link[aria-current='page'] {
+		background-color: color-mix(in srgb, var(--nav-pill-fg) 12%, transparent);
+	}
+
+	.mobile-link[aria-current='page'] .mono-meta {
+		color: inherit;
+	}
+
+	.mobile-cta {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 48px;
+		margin: 1rem 0.75rem 0.5rem;
+		background-color: var(--nav-pill-cta-bg);
+		color: var(--nav-pill-cta-fg);
+		border-radius: 9px;
+		font-size: 0.9375rem;
+		font-weight: 600;
+	}
+
+	/* ID locale ("Spesifikasi", "Hubungi Saya") needs the extra room. */
+	@media (max-width: 960px) {
+		.primary-nav,
+		.nav-cta {
+			display: none;
+		}
+
+		.menu-toggle {
+			display: inline-flex;
+		}
+	}
+</style>
