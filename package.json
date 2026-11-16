@@ -10,6 +10,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
+    "test": "node --test",
     "postinstall": "node scripts/copy-draco.mjs"
   },
   "dependencies": {
@@ -22,6 +23,7 @@
     "three": "^0.187.0"
   },
   "devDependencies": {
+    "@iconify-json/devicon": "^1.2.81",
     "@types/three": "^0.187.0"
   }
 }

@@ -18,14 +18,12 @@ const t = useTranslations(lang);
 	</div>
 	<div class="container hero-grid">
 		<div class="hero-copy">
-			<p class="section-index" data-hero-reveal>{t('hero.index')}</p>
 			<h1 class="hero-title" data-hero-reveal>{t('hero.greeting')}</h1>
-			<p class="mono-meta hero-aka" data-hero-reveal>{t('hero.aka')}</p>
 			<p class="hero-role" data-hero-reveal>{t('hero.role')}</p>
 			<p class="hero-summary" data-hero-reveal>{t('hero.summary')}</p>
 
 			<div class="hero-actions" data-hero-reveal>
-				<a href="#selected-works" class="btn-primary">
+				<a href="#work-showcase" class="btn-primary">
 					{t('hero.cta.work')}
 				</a>
 				<a
@@ -40,16 +38,16 @@ const t = useTranslations(lang);
 
 			<dl class="hero-specs" data-hero-reveal>
 				<div class="spec-cell">
-					<dt class="mono-meta">Laboratory</dt>
-					<dd>RES Lab, Unand</dd>
+					<dt>{t('hero.spec.status')}</dt>
+					<dd>{t('hero.spec.statusVal')}</dd>
 				</div>
 				<div class="spec-cell">
-					<dt class="mono-meta">Domains</dt>
-					<dd>Firmware · Vision · Web</dd>
+					<dt>{t('hero.spec.location')}</dt>
+					<dd>{t('hero.spec.locationVal')}</dd>
 				</div>
 				<div class="spec-cell">
-					<dt class="mono-meta">Local Time</dt>
-					<dd data-wib-clock>--:--:-- WIB</dd>
+					<dt>{t('hero.spec.workMode')}</dt>
+					<dd>{t('hero.spec.workModeVal')}</dd>
 				</div>
 			</dl>
 		</div>
@@ -59,23 +57,11 @@ const t = useTranslations(lang);
 				<canvas
 					class="hero-canvas"
 					data-hero-canvas
-					aria-label="Interactive 3D robot model"
+					aria-label={t('hero.scene.aria')}
 				></canvas>
 
-				<div class="stage-status" data-hero-status role="status" aria-live="polite">
-					<span class="mono-meta">{t('hero.scene.loading')}</span>
-					<strong class="mono-meta" data-hero-percent>0%</strong>
-				</div>
-
 				<div class="stage-fallback" data-hero-fallback hidden>
-					<img
-						src="/works/smart-greenhouse-monitor.svg"
-						alt="Static technical schematic fallback"
-						width="1000"
-						height="625"
-						fetchpriority="high"
-					/>
-					<p class="mono-meta">{t('hero.scene.fallback')}</p>
+					<p class="stage-fallback-text">{t('hero.scene.fallback')}</p>
 				</div>
 			</div>
 		</div>
@@ -86,7 +72,12 @@ const t = useTranslations(lang);
 	.hero-section {
 		position: relative;
 		isolation: isolate;
-		padding-block: clamp(2rem, 5vw, 4.5rem);
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		/* Subtract sticky header height (including mascot headroom) so the hero fills the first screen. */
+		min-height: calc(100dvh - var(--header-offset));
+		padding-block: clamp(1.75rem, 4dvh, 3.5rem);
 		border-bottom: 1px solid var(--line);
 	}
 
@@ -94,7 +85,7 @@ const t = useTranslations(lang);
 	   background shows above it. Only the background moves, not the content. */
 	.hero-bg {
 		position: absolute;
-		inset: calc(-1 * (1.5rem + 3.75rem + 8px)) 0 0;
+		inset: calc(-1 * (var(--header-offset) + 8px)) 0 0;
 		z-index: -1;
 		overflow: hidden;
 	}
@@ -118,11 +109,6 @@ const t = useTranslations(lang);
 		flex-direction: column;
 		gap: 1rem;
 		color: var(--inv-fg);
-	}
-
-	.hero-copy .section-index,
-	.hero-copy .mono-meta {
-		color: color-mix(in srgb, var(--inv-fg) 64%, transparent);
 	}
 
 	.hero-copy .hero-summary {
@@ -166,10 +152,6 @@ const t = useTranslations(lang);
 		letter-spacing: -0.035em;
 	}
 
-	.hero-aka {
-		margin-top: -0.25rem;
-	}
-
 	.hero-role {
 		font-family: 'Bricolage Grotesque Variable', sans-serif;
 		font-size: clamp(1.25rem, 2.2vw, 1.65rem);
@@ -205,18 +187,21 @@ const t = useTranslations(lang);
 		gap: 0.25rem;
 	}
 
+	.spec-cell dt {
+		font-size: 0.875rem;
+		color: color-mix(in srgb, var(--inv-fg) 64%, transparent);
+	}
+
 	.spec-cell dd {
 		margin: 0;
-		font-family: 'IBM Plex Mono', monospace;
-		font-size: 0.875rem;
+		font-size: 0.9375rem;
 		font-weight: 500;
 	}
 
 	.canvas-holder {
 		position: relative;
 		width: 100%;
-		aspect-ratio: 4 / 3;
-		min-height: 360px;
+		height: clamp(400px, 72dvh, 660px);
 	}
 
 	.hero-canvas {
@@ -226,7 +211,6 @@ const t = useTranslations(lang);
 		cursor: grab;
 	}
 
-	.stage-status,
 	.stage-fallback {
 		position: absolute;
 		inset: 0;
@@ -241,12 +225,11 @@ const t = useTranslations(lang);
 		pointer-events: none;
 	}
 
-	.stage-fallback img {
-		max-width: 100%;
-		height: auto;
+	.stage-fallback-text {
+		font-size: 0.875rem;
+		color: color-mix(in srgb, var(--inv-fg) 72%, transparent);
 	}
 
-	.stage-status[hidden],
 	.stage-fallback[hidden] {
 		display: none;
 	}
@@ -254,6 +237,10 @@ const t = useTranslations(lang);
 	@media (max-width: 1024px) {
 		.hero-grid {
 			grid-template-columns: 1fr;
+		}
+
+		.canvas-holder {
+			height: clamp(320px, 46dvh, 460px);
 		}
 	}
 
@@ -263,7 +250,7 @@ const t = useTranslations(lang);
 		}
 
 		.canvas-holder {
-			min-height: 270px;
+			height: clamp(280px, 42dvh, 360px);
 		}
 	}
 </style>

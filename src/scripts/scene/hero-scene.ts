@@ -6,8 +6,6 @@ import { gsap, prefersReducedMotion } from '../lib/lifecycle';
 
 export function initHeroScene(root: HTMLElement): () => void {
 	const canvas = root.querySelector<HTMLCanvasElement>('[data-hero-canvas]');
-	const statusEl = root.querySelector<HTMLElement>('[data-hero-status]');
-	const percentEl = root.querySelector<HTMLElement>('[data-hero-percent]');
 	const fallbackEl = root.querySelector<HTMLElement>('[data-hero-fallback]');
 
 	if (!canvas) return () => {};
@@ -21,7 +19,6 @@ export function initHeroScene(root: HTMLElement): () => void {
 			powerPreference: 'high-performance',
 		});
 	} catch {
-		if (statusEl) statusEl.hidden = true;
 		if (fallbackEl) fallbackEl.hidden = false;
 		return () => {};
 	}
@@ -39,8 +36,9 @@ export function initHeroScene(root: HTMLElement): () => void {
 	scene.environment = envTexture;
 
 	const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 50);
-	camera.position.set(0, 1.55, 4.0);
-	const lookTarget = new THREE.Vector3(0, 1.15, 0);
+	// Leave headroom above the antenna so playNextReaction() jumps never clip at the top edge.
+	camera.position.set(0, 1.65, 5.3);
+	const lookTarget = new THREE.Vector3(0, 1.38, 0);
 	camera.lookAt(lookTarget);
 
 	const keyLight = new THREE.DirectionalLight(0xffffff, 1.6);
@@ -65,6 +63,7 @@ export function initHeroScene(root: HTMLElement): () => void {
 	pivot.add(bounce);
 
 	let modelRoot: THREE.Object3D | null = null;
+	let headAimPivot: THREE.Group | null = null;
 	let headPivot: THREE.Group | null = null;
 	let antennaPivot: THREE.Group | null = null;
 	let leftArmPivot: THREE.Group | null = null;
@@ -72,30 +71,27 @@ export function initHeroScene(root: HTMLElement): () => void {
 
 	// Re-parent a node under a pivot at its original transform so GSAP can
 	// animate it around its own origin without touching the glb hierarchy.
-	function wrapInPivot(node: THREE.Object3D): THREE.Group {
+	// Pass worldAligned=true when the node's local axes are rotated in the GLB
+	// but animations should happen in world-aligned parent axes.
+	function wrapInPivot(node: THREE.Object3D, worldAligned = false): THREE.Group {
 		const parent = node.parent!;
 		const g = new THREE.Group();
 		g.position.copy(node.position);
-		g.quaternion.copy(node.quaternion);
-		g.scale.copy(node.scale);
+		if (!worldAligned) {
+			g.quaternion.copy(node.quaternion);
+			g.scale.copy(node.scale);
+			node.quaternion.identity();
+			node.scale.set(1, 1, 1);
+		}
 		parent.add(g);
 		g.add(node);
 		node.position.set(0, 0, 0);
-		node.quaternion.identity();
-		node.scale.set(1, 1, 1);
 		return g;
 	}
 
-	const manager = new THREE.LoadingManager();
-	manager.onProgress = (_url, loaded, total) => {
-		if (percentEl && total > 0) {
-			percentEl.textContent = `${Math.min(100, Math.round((loaded / total) * 100))}%`;
-		}
-	};
-
-	const dracoLoader = new DRACOLoader(manager);
+	const dracoLoader = new DRACOLoader();
 	dracoLoader.setDecoderPath('/draco/');
-	const gltfLoader = new GLTFLoader(manager);
+	const gltfLoader = new GLTFLoader();
 	gltfLoader.setDRACOLoader(dracoLoader);
 
 	let disposed = false;
@@ -127,25 +123,33 @@ export function initHeroScene(root: HTMLElement): () => void {
 			modelRoot = model;
 
 			const head = model.getObjectByName('Head');
-			if (head) headPivot = wrapInPivot(head);
+			if (head) {
+				// World-aligned outer pivot for cursor tracking so playCheer() on headPivot stays independent.
+				headAimPivot = new THREE.Group();
+				headAimPivot.rotation.order = 'YXZ';
+				headAimPivot.position.copy(head.position);
+				head.parent!.add(headAimPivot);
+				headAimPivot.add(head);
+				head.position.set(0, 0, 0);
+				headPivot = wrapInPivot(head);
+			}
 			const antenna = model.getObjectByName('Antenna');
 			if (antenna) antennaPivot = wrapInPivot(antenna);
 			const leftArm = model.getObjectByName('LeftArm');
-			if (leftArm) leftArmPivot = wrapInPivot(leftArm);
+			if (leftArm) leftArmPivot = wrapInPivot(leftArm, true);
 			const rightArm = model.getObjectByName('RightArm');
-			if (rightArm) rightArmPivot = wrapInPivot(rightArm);
+			if (rightArm) rightArmPivot = wrapInPivot(rightArm, true);
 
 			modelLoaded = true;
-			if (statusEl) statusEl.hidden = true;
 
 			if (!reducedMotion) {
 				gsap.fromTo(
 					camera.position,
-					{ x: 0.6, y: 1.85, z: 4.15 },
+					{ x: 0.7, y: 2.0, z: 5.5 },
 					{
 						x: 0,
-						y: 1.55,
-						z: 4.0,
+						y: 1.65,
+						z: 5.3,
 						duration: 1.35,
 						ease: 'power3.out',
 						onUpdate: () => camera.lookAt(lookTarget),
@@ -157,7 +161,6 @@ export function initHeroScene(root: HTMLElement): () => void {
 		},
 		undefined,
 		() => {
-			if (statusEl) statusEl.hidden = true;
 			if (fallbackEl) fallbackEl.hidden = false;
 		},
 	);
@@ -183,7 +186,7 @@ export function initHeroScene(root: HTMLElement): () => void {
 	let pointerDownX = 0;
 	let pointerDownY = 0;
 
-	// Cursor look direction (-1..1) that the whole body turns toward.
+	// Cursor look direction (-1..1) that the robot's head turns toward.
 	let lookX = 0;
 	let lookY = 0;
 	let lookTargetX = 0;
@@ -195,6 +198,7 @@ export function initHeroScene(root: HTMLElement): () => void {
 	function hitRobot(e: PointerEvent): boolean {
 		if (!modelRoot) return false;
 		const rect = canvas!.getBoundingClientRect();
+		if (!rect.width || !rect.height) return false;
 		pointer.set(
 			((e.clientX - rect.left) / rect.width) * 2 - 1,
 			-((e.clientY - rect.top) / rect.height) * 2 + 1,
@@ -235,45 +239,133 @@ export function initHeroScene(root: HTMLElement): () => void {
 		canvas!.style.cursor = hitRobot(e) ? 'pointer' : 'grab';
 		const moved = Math.hypot(e.clientX - pointerDownX, e.clientY - pointerDownY);
 		if ((!wasDragging || moved < 5) && hitRobot(e)) {
-			playCheer();
+			playNextReaction();
 		}
 	}
 
-	function playCheer() {
+	let nextReaction = 0;
+
+	function playNextReaction() {
 		if (reducedMotion || !modelLoaded) return;
-		gsap.killTweensOf([
+
+		const targets = [
 			bounce.position,
 			bounce.scale,
+			bounce.rotation,
 			headPivot?.rotation,
 			antennaPivot?.rotation,
 			leftArmPivot?.rotation,
 			rightArmPivot?.rotation,
-		].filter(Boolean));
-		const tl = gsap.timeline();
-		tl.to(bounce.scale, { x: 1.12, y: 0.86, z: 1.12, duration: 0.12, ease: 'power2.out' })
-			.to(bounce.scale, { x: 0.95, y: 1.1, z: 0.95, duration: 0.16, ease: 'power2.out' }, '<')
-			.to(bounce.position, { y: 0.32, duration: 0.24, ease: 'power2.out' }, '<')
-			.to(bounce.position, { y: 0, duration: 0.45, ease: 'bounce.out' })
-			.to(bounce.scale, { x: 1, y: 1, z: 1, duration: 0.5, ease: 'elastic.out(1, 0.45)' }, '<');
+		].filter(Boolean);
+		gsap.killTweensOf(targets);
 
-		if (headPivot) {
-			tl.to(headPivot.rotation, { z: 0.22, duration: 0.12, ease: 'power2.out' }, 0)
-				.to(headPivot.rotation, { z: -0.16, duration: 0.14 }, 0.12)
-				.to(headPivot.rotation, { z: 0, duration: 0.24, ease: 'power2.out' }, 0.26);
-		}
-		if (antennaPivot) {
-			tl.to(
-				antennaPivot.rotation,
-				{ z: -0.45, duration: 0.12, yoyo: true, repeat: 3, ease: 'sine.inOut' },
-				0.05,
-			);
-		}
-		if (leftArmPivot) {
-			tl.to(leftArmPivot.rotation, { z: 0.7, duration: 0.14, yoyo: true, repeat: 1, ease: 'sine.inOut' }, 0);
-		}
-		if (rightArmPivot) {
-			tl.to(rightArmPivot.rotation, { z: -0.7, duration: 0.14, yoyo: true, repeat: 1, ease: 'sine.inOut' }, 0);
-		}
+		// Normalize spin angle so interrupting a twirl takes the shortest path back to front.
+		bounce.rotation.y = ((bounce.rotation.y + Math.PI) % (Math.PI * 2)) - Math.PI;
+		if (bounce.rotation.y < -Math.PI) bounce.rotation.y += Math.PI * 2;
+
+		const tl = gsap.timeline();
+
+		const reactions: Array<() => void> = [
+			// 0: Berputar — joyful double-spin with arms out and a cute ta-da head tilt
+			() => {
+				tl.to(bounce.scale, { x: 1.09, y: 0.89, z: 1.09, duration: 0.1, ease: 'power2.out' }, 0)
+					.to(bounce.scale, { x: 0.96, y: 1.06, z: 0.96, duration: 0.15, ease: 'power2.out' }, 0.1)
+					.to(bounce.rotation, { x: 0, z: 0, duration: 0.14 }, 0)
+					.to(bounce.position, { y: 0.22, duration: 0.28, ease: 'power2.out' }, 0.08)
+					.to(bounce.rotation, { y: Math.PI * 4, duration: 0.94, ease: 'power2.inOut' }, 0.08)
+					.to(bounce.position, { y: 0, duration: 0.34, ease: 'bounce.out' }, 0.7)
+					.to(bounce.scale, { x: 1, y: 1, z: 1, duration: 0.4, ease: 'elastic.out(1, 0.5)' }, 0.7)
+					.set(bounce.rotation, { y: 0 }, 1.03);
+
+				if (leftArmPivot) {
+					tl.to(leftArmPivot.rotation, { z: -1.45, x: 0.1, duration: 0.2, ease: 'back.out(1.6)' }, 0.08)
+						.to(leftArmPivot.rotation, { z: 0, x: 0, duration: 0.32, ease: 'power2.inOut' }, 0.78);
+				}
+				if (rightArmPivot) {
+					tl.to(rightArmPivot.rotation, { z: 1.45, x: 0.1, duration: 0.2, ease: 'back.out(1.6)' }, 0.08)
+						.to(rightArmPivot.rotation, { z: 0, x: 0, duration: 0.32, ease: 'power2.inOut' }, 0.78);
+				}
+				if (headPivot) {
+					tl.to(headPivot.rotation, { z: 0, duration: 0.14 }, 0)
+						.to(headPivot.rotation, { z: 0.18, duration: 0.16, ease: 'power2.out' }, 0.92)
+						.to(headPivot.rotation, { z: 0, duration: 0.24, ease: 'power2.inOut' }, 1.08);
+				}
+				if (antennaPivot) {
+					tl.to(
+						antennaPivot.rotation,
+						{ z: -0.48, duration: 0.1, yoyo: true, repeat: 5, ease: 'sine.inOut' },
+						0.1,
+					).to(antennaPivot.rotation, { z: 0, duration: 0.14, ease: 'power2.out' });
+				}
+			},
+
+			// 1: Menyapa — cute tilt, tiny happy hop, and friendly wave
+			() => {
+				tl.to(bounce.rotation, { x: 0, y: 0, z: -0.08, duration: 0.2, ease: 'power2.out' }, 0)
+					.to(bounce.scale, { x: 1.07, y: 0.91, z: 1.07, duration: 0.09, ease: 'power2.out' }, 0)
+					.to(bounce.scale, { x: 0.97, y: 1.05, z: 0.97, duration: 0.14, ease: 'power2.out' }, 0.09)
+					.to(bounce.position, { y: 0.1, duration: 0.16, ease: 'power2.out' }, 0.09)
+					.to(bounce.position, { y: 0, duration: 0.26, ease: 'bounce.out' }, 0.25)
+					.to(bounce.scale, { x: 1, y: 1, z: 1, duration: 0.25, ease: 'power2.out' }, 0.25)
+					.to(bounce.rotation, { z: 0, duration: 0.32, ease: 'power2.inOut' }, 0.85);
+
+				if (rightArmPivot) {
+					tl.to(rightArmPivot.rotation, { z: 2.25, x: 0.15, duration: 0.22, ease: 'back.out(1.7)' }, 0.06)
+						.to(rightArmPivot.rotation, { z: 1.75, duration: 0.13, yoyo: true, repeat: 4, ease: 'sine.inOut' }, 0.28)
+						.to(rightArmPivot.rotation, { z: 0, x: 0, duration: 0.32, ease: 'power2.inOut' }, 0.96);
+				}
+				if (leftArmPivot) {
+					tl.to(leftArmPivot.rotation, { z: -0.55, x: -0.15, duration: 0.22, ease: 'power2.out' }, 0.06)
+						.to(leftArmPivot.rotation, { z: 0, x: 0, duration: 0.3, ease: 'power2.inOut' }, 0.85);
+				}
+				if (headPivot) {
+					tl.to(headPivot.rotation, { z: 0.2, duration: 0.18, ease: 'power2.out' }, 0.06)
+						.to(headPivot.rotation, { z: -0.14, duration: 0.24, ease: 'sine.inOut' }, 0.36)
+						.to(headPivot.rotation, { z: 0, duration: 0.28, ease: 'power2.inOut' }, 0.85);
+				}
+				if (antennaPivot) {
+					tl.to(
+						antennaPivot.rotation,
+						{ z: -0.5, duration: 0.1, yoyo: true, repeat: 5, ease: 'sine.inOut' },
+						0.08,
+					).to(antennaPivot.rotation, { z: 0, duration: 0.14, ease: 'power2.out' });
+				}
+			},
+
+			// 2: Melompat — bouncy squash-and-stretch jump with both hands raised high in cheer
+			() => {
+				tl.to(bounce.rotation, { x: 0, y: 0, z: 0, duration: 0.14, ease: 'power2.out' }, 0)
+					.to(bounce.scale, { x: 1.15, y: 0.82, z: 1.15, duration: 0.11, ease: 'power2.out' }, 0)
+					.to(bounce.scale, { x: 0.93, y: 1.12, z: 0.93, duration: 0.16, ease: 'power2.out' }, 0.11)
+					.to(bounce.position, { y: 0.3, duration: 0.25, ease: 'power2.out' }, 0.11)
+					.to(bounce.position, { y: 0, duration: 0.44, ease: 'bounce.out' }, 0.36)
+					.to(bounce.scale, { x: 1, y: 1, z: 1, duration: 0.5, ease: 'elastic.out(1, 0.45)' }, 0.36);
+
+				if (leftArmPivot) {
+					tl.to(leftArmPivot.rotation, { z: -2.2, x: 0.15, duration: 0.2, ease: 'back.out(1.8)' }, 0.1)
+						.to(leftArmPivot.rotation, { z: 0, x: 0, duration: 0.34, ease: 'power2.inOut' }, 0.56);
+				}
+				if (rightArmPivot) {
+					tl.to(rightArmPivot.rotation, { z: 2.2, x: 0.15, duration: 0.2, ease: 'back.out(1.8)' }, 0.1)
+						.to(rightArmPivot.rotation, { z: 0, x: 0, duration: 0.34, ease: 'power2.inOut' }, 0.56);
+				}
+				if (headPivot) {
+					tl.to(headPivot.rotation, { z: 0.22, duration: 0.14, ease: 'power2.out' }, 0.08)
+						.to(headPivot.rotation, { z: -0.18, duration: 0.16, ease: 'sine.inOut' }, 0.24)
+						.to(headPivot.rotation, { z: 0, duration: 0.24, ease: 'power2.out' }, 0.44);
+				}
+				if (antennaPivot) {
+					tl.to(
+						antennaPivot.rotation,
+						{ z: -0.5, duration: 0.1, yoyo: true, repeat: 5, ease: 'sine.inOut' },
+						0.08,
+					).to(antennaPivot.rotation, { z: 0, duration: 0.14, ease: 'power2.out' });
+				}
+			},
+		];
+
+		reactions[nextReaction]();
+		nextReaction = (nextReaction + 1) % reactions.length;
 	}
 
 	canvas.addEventListener('pointermove', onPointerMove);
@@ -294,10 +386,6 @@ export function initHeroScene(root: HTMLElement): () => void {
 	function animate() {
 		rafId = requestAnimationFrame(animate);
 		if (!inView || document.hidden) return;
-		if (reducedMotion && modelLoaded) {
-			renderer.render(scene, camera);
-			return;
-		}
 
 		if (!isDragging) {
 			dragOffsetY *= 0.94;
@@ -306,23 +394,38 @@ export function initHeroScene(root: HTMLElement): () => void {
 		lookX += (lookTargetX - lookX) * 0.08;
 		lookY += (lookTargetY - lookY) * 0.08;
 
-		pivot.rotation.y += (dragOffsetY + lookX * 0.5 - pivot.rotation.y) * 0.08;
-		pivot.rotation.x += (-lookY * 0.16 - pivot.rotation.x) * 0.08;
+		pivot.rotation.y += (dragOffsetY - pivot.rotation.y) * 0.08;
+
+		if (headAimPivot) {
+			headAimPivot.rotation.y += (lookX * 0.5 - headAimPivot.rotation.y) * 0.08;
+			headAimPivot.rotation.x += (-lookY * 0.2 - headAimPivot.rotation.x) * 0.08;
+		}
 
 		renderer.render(scene, camera);
 	}
 
-	animate();
+	if (!reducedMotion) {
+		animate();
+	}
 
 	return () => {
 		disposed = true;
-		cancelAnimationFrame(rafId);
+		if (rafId) cancelAnimationFrame(rafId);
 		io.disconnect();
 		window.removeEventListener('resize', resize);
 		canvas.removeEventListener('pointermove', onPointerMove);
 		canvas.removeEventListener('pointerdown', onPointerDown);
 		window.removeEventListener('pointerup', onPointerUp);
-		gsap.killTweensOf([bounce.position, bounce.scale]);
+		gsap.killTweensOf([
+			camera.position,
+			bounce.position,
+			bounce.scale,
+			bounce.rotation,
+			headPivot?.rotation,
+			antennaPivot?.rotation,
+			leftArmPivot?.rotation,
+			rightArmPivot?.rotation,
+		].filter(Boolean));
 		dracoLoader.dispose();
 		envTexture.dispose();
 		pmrem.dispose();

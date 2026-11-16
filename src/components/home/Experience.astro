@@ -1,5 +1,6 @@
 ---
-import { experiences, profile } from '../../data/profile';
+import { Image } from 'astro:assets';
+import { experiences } from '../../data/profile';
 import { type Lang, useTranslations } from '../../i18n/utils';
 
 interface Props {
@@ -12,12 +13,7 @@ const t = useTranslations(lang);
 
 <section id="experience" class="exp-section">
 	<div class="container">
-		<div class="section-header">
-			<span class="section-index">{t('exp.index')}</span>
-			<span class="mono-meta">FIELD &amp; LABORATORY LOG</span>
-		</div>
-
-		<h2 class="exp-heading" data-reveal>{t('exp.heading')}</h2>
+		<h2 class="exp-heading">{t('exp.heading')}</h2>
 
 		<div class="timeline-wrap" data-timeline-wrap>
 			<div class="timeline-rail" aria-hidden="true">
@@ -26,42 +22,58 @@ const t = useTranslations(lang);
 
 			<div class="timeline-list">
 				{
-					experiences.map((item) => (
-						<article class="timeline-item" data-reveal>
-							<div class="timeline-meta">
-								<span class="mono-meta item-code">{item.id}</span>
-								<span class:list={['mono-meta', { 'placeholder-tag': item.todoPeriod }]}>
-									{item.period[lang]}
-								</span>
-							</div>
+					experiences.map((item) => {
+						const isGrouped = item.roles.length > 1;
 
-							<div class="timeline-content">
-								<h3 class="item-role">{item.role[lang]}</h3>
-								<p class="item-org mono-meta">
-									{item.org} · {item.location}
-								</p>
-								<p class="item-summary">{item.summary[lang]}</p>
-								<ul class="item-highlights">
-									{item.highlights[lang].map((point) => (
-										<li>{point}</li>
-									))}
-								</ul>
-							</div>
-						</article>
-					))
+						return (
+							<article class="timeline-item">
+								<div class="timeline-meta">
+									<span class="item-period">
+										{item.period[lang]}
+									</span>
+									{item.photo && (
+										<div class="timeline-photo-frame">
+											<Image
+												src={item.photo.src}
+												alt={item.photo.alt[lang]}
+												width={520}
+												height={390}
+												class="timeline-photo"
+												loading="lazy"
+											/>
+										</div>
+									)}
+								</div>
+
+								<div class="timeline-content">
+									<div class="org-header">
+										<h3 class="item-org-title">{item.org}</h3>
+										<p class="item-org-loc">{item.location}</p>
+									</div>
+
+									<div class:list={['role-list', { 'is-grouped': isGrouped }]}>
+										{item.roles.map((entry) => (
+											<div class="role-entry">
+												{isGrouped && (
+													<span class="subrole-period">
+														{entry.period[lang]}
+													</span>
+												)}
+												<h4 class="item-role">{entry.role[lang]}</h4>
+												<p class="item-summary">{entry.summary[lang]}</p>
+												<ul class="item-highlights">
+													{entry.highlights[lang].map((point) => (
+														<li>{point}</li>
+													))}
+												</ul>
+											</div>
+										))}
+									</div>
+								</div>
+							</article>
+						);
+					})
 				}
-			</div>
-		</div>
-
-		<div class="edu-block" data-reveal>
-			<div class="edu-label mono-meta">{t('exp.edu.label')}</div>
-			<div class="edu-body">
-				<h3 class="edu-degree">{profile.education.degree[lang]}</h3>
-				<p class="edu-inst">{profile.education.institution}</p>
-				<p class="mono-meta">{profile.education.lab}</p>
-			</div>
-			<div class="edu-period">
-				<span class="placeholder-tag">{profile.education.period[lang]}</span>
 			</div>
 		</div>
 	</div>
@@ -75,12 +87,12 @@ const t = useTranslations(lang);
 
 	.exp-heading {
 		font-size: clamp(1.85rem, 3.4vw, 2.85rem);
-		margin-bottom: clamp(2rem, 4vw, 3.5rem);
 	}
 
 	.timeline-wrap {
 		position: relative;
 		padding-left: clamp(1.5rem, 3vw, 2.75rem);
+		margin-top: clamp(2rem, 4vw, 3.5rem);
 	}
 
 	.timeline-rail {
@@ -114,6 +126,11 @@ const t = useTranslations(lang);
 		align-items: start;
 	}
 
+	.timeline-item:last-child {
+		padding-bottom: 0;
+		border-bottom: 0;
+	}
+
 	.timeline-meta {
 		display: flex;
 		flex-direction: column;
@@ -121,13 +138,61 @@ const t = useTranslations(lang);
 		gap: 0.5rem;
 	}
 
-	.item-role {
+	.item-period {
+		font-size: 0.875rem;
+		font-variant-numeric: tabular-nums;
+		color: var(--muted);
+	}
+
+	.timeline-photo-frame {
+		width: 100%;
+		aspect-ratio: 4 / 3;
+		border-radius: 8px;
+		overflow: hidden;
+		background-color: var(--surface);
+		margin-top: 0.35rem;
+	}
+
+	.timeline-photo {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		object-position: center;
+		transform: scale(1.03);
+	}
+
+	.item-org-title {
 		font-size: clamp(1.25rem, 2vw, 1.5rem);
 		margin-bottom: 0.25rem;
 	}
 
-	.item-org {
-		margin-bottom: 0.75rem;
+	.item-org-loc {
+		color: var(--muted);
+		margin-bottom: 1rem;
+	}
+
+	.role-list.is-grouped {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	.role-list.is-grouped .role-entry + .role-entry {
+		padding-top: 1.5rem;
+		border-top: 1px dashed var(--line);
+	}
+
+	.subrole-period {
+		display: inline-block;
+		font-size: 0.875rem;
+		font-variant-numeric: tabular-nums;
+		color: var(--muted);
+		margin-bottom: 0.25rem;
+	}
+
+	.item-role {
+		font-size: clamp(1.1rem, 1.7vw, 1.25rem);
+		margin-bottom: 0.5rem;
 	}
 
 	.item-summary {
@@ -143,34 +208,14 @@ const t = useTranslations(lang);
 		gap: 0.375rem;
 	}
 
-	.edu-block {
-		margin-top: 2.5rem;
-		padding: 1.5rem;
-		border: 1.5px solid var(--border-strong);
-		background-color: var(--surface);
-		display: grid;
-		grid-template-columns: 220px 1fr auto;
-		gap: 1.5rem;
-		align-items: center;
-	}
-
-	.edu-degree {
-		font-size: 1.25rem;
-	}
-
-	.edu-inst {
-		font-weight: 500;
-	}
-
 	@media (max-width: 860px) {
 		.timeline-item {
 			grid-template-columns: 1fr;
 			gap: 0.75rem;
 		}
 
-		.edu-block {
-			grid-template-columns: 1fr;
-			gap: 0.75rem;
+		.timeline-photo-frame {
+			max-width: 360px;
 		}
 	}
 </style>

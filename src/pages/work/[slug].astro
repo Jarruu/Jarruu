@@ -10,12 +10,13 @@ export async function getStaticPaths() {
 		params: { slug: entry.data.slugId },
 		props: {
 			entry,
+			prevEntry: entries[(idx - 1 + entries.length) % entries.length],
 			nextEntry: entries[(idx + 1) % entries.length],
 		},
 	}));
 }
 
-const { entry, nextEntry } = Astro.props;
+const { entry, prevEntry, nextEntry } = Astro.props;
 ---
 
-<WorkDetailView lang="en" entry={entry} nextEntry={nextEntry} />
+<WorkDetailView lang="en" entry={entry} prevEntry={prevEntry} nextEntry={nextEntry} />

@@ -1,5 +1,6 @@
 ---
 import { skillGroups } from '../../data/profile';
+import { getSkillLogos } from '../../data/skill-icons';
 import { type Lang, useTranslations } from '../../i18n/utils';
 
 interface Props {
@@ -12,38 +13,113 @@ const t = useTranslations(lang);
 
 <section id="specs" class="skills-section">
 	<div class="container">
-		<div class="section-header">
-			<span class="section-index">{t('skills.index')}</span>
-			<span class="mono-meta">COMPONENT &amp; TOOLING MATRIX</span>
-		</div>
+		<h2 class="skills-heading">{t('skills.heading')}</h2>
 
-		<h2 class="skills-heading" data-reveal>{t('skills.heading')}</h2>
-
-		<div class="spec-sheet" role="region" aria-label={t('skills.heading')} data-reveal>
-			<div class="spec-head mono-meta">
-				<div>CODE</div>
+		<div class="spec-sheet" role="region" aria-label={t('skills.heading')}>
+			<div class="spec-head">
 				<div>{t('skills.col.domain')}</div>
 				<div>{t('skills.col.items')}</div>
 				<div>{t('skills.col.context')}</div>
 			</div>
 
 			{
-				skillGroups.map((group) => (
-					<div class="spec-row">
-						<div class="mono-meta spec-code">{group.code}</div>
-						<div class="spec-domain">{group.domain[lang]}</div>
-						<ul class="spec-tags" aria-label={group.domain[lang]}>
-							{group.items.map((item) => (
-								<li class="mono-meta">{item}</li>
-							))}
-						</ul>
-						<div class="spec-context">{group.context[lang]}</div>
-					</div>
-				))
+				skillGroups.map((group) => {
+					const repeatPerHalf = Math.max(1, Math.ceil(12 / group.items.length));
+					const halfItems = Array.from({ length: repeatPerHalf }, () => group.items).flat();
+					const marqueeDuration = `${Math.round(halfItems.length * 1.9)}s`;
+
+					return (
+						<div class="spec-row">
+							<div class="spec-domain">{group.domain[lang]}</div>
+							<div class="marquee-viewport">
+								<ul
+									class="marquee-track"
+									aria-label={group.domain[lang]}
+									style={`--marquee-duration: ${marqueeDuration};`}
+								>
+									{[0, 1].map((halfIdx) =>
+										halfItems.map((item, idx) => {
+											const isPrimary = halfIdx === 0 && idx < group.items.length;
+											const logos = getSkillLogos(item);
+											return (
+												<li
+													class="skill-item"
+													data-skill-item
+													data-marquee-dup={isPrimary ? undefined : 'true'}
+													aria-hidden={isPrimary ? undefined : 'true'}
+												>
+													<button
+														type="button"
+														class="skill-chip"
+														aria-label={isPrimary ? item : undefined}
+														tabindex={isPrimary ? undefined : -1}
+													>
+														{logos.map((logo) => (
+															<svg
+																class="skill-chip-svg"
+																viewBox={logo.viewBox}
+																width="28"
+																height="28"
+																aria-hidden="true"
+																set:html={logo.body}
+															/>
+														))}
+													</button>
+													<div class="skill-hover-card" aria-hidden="true" data-skill-card>
+														<span class="hover-card-name">{item}</span>
+													</div>
+												</li>
+											);
+										}),
+									)}
+								</ul>
+							</div>
+							<div class="spec-context">{group.context[lang]}</div>
+						</div>
+					);
+				})
 			}
 		</div>
 	</div>
 </section>
+
+<script>
+	function initSkillCardBounds() {
+		const items = document.querySelectorAll<HTMLElement>('[data-skill-item]');
+		const margin = 12;
+
+		for (const item of items) {
+			if (item.dataset.bound === '1') continue;
+			item.dataset.bound = '1';
+			const card = item.querySelector<HTMLElement>('[data-skill-card]');
+			const viewport = item.closest<HTMLElement>('.marquee-viewport');
+			if (!card) continue;
+
+			const adjust = () => {
+				card.style.setProperty('--card-shift-x', '0px');
+				const rect = card.getBoundingClientRect();
+				const bounds = viewport?.getBoundingClientRect();
+				const leftEdge = (bounds ? Math.max(0, bounds.left) : 0) + margin;
+				const rightEdge = (bounds ? Math.min(window.innerWidth, bounds.right) : window.innerWidth) - margin;
+				let shift = 0;
+				if (rect.left < leftEdge) {
+					shift = leftEdge - rect.left;
+				} else if (rect.right > rightEdge) {
+					shift = rightEdge - rect.right;
+				}
+				if (shift !== 0) {
+					card.style.setProperty('--card-shift-x', `${Math.round(shift)}px`);
+				}
+			};
+
+			item.addEventListener('pointerenter', adjust);
+			item.addEventListener('focusin', adjust);
+		}
+	}
+
+	initSkillCardBounds();
+	document.addEventListener('astro:page-load', initSkillCardBounds);
+</script>
 
 <style>
 	.skills-section {
@@ -57,66 +133,171 @@ const t = useTranslations(lang);
 	}
 
 	.spec-sheet {
-		border: 1.5px solid var(--border-strong);
+		border-top: 1.5px solid var(--fg);
 	}
 
 	.spec-head,
 	.spec-row {
 		display: grid;
-		grid-template-columns: 90px 1.1fr 1.8fr 1.3fr;
-		gap: 1.25rem;
-		padding: 1.25rem 1.5rem;
-		align-items: center;
+		grid-template-columns: 1fr 1.8fr 1.3fr;
+		gap: 1.5rem;
+		padding: 1.25rem 0;
+		align-items: start;
 	}
 
 	.spec-head {
-		background-color: var(--surface);
-		border-bottom: 1.5px solid var(--border-strong);
-		font-weight: 600;
+		font-size: 0.875rem;
+		color: var(--muted);
+		border-bottom: 1px solid var(--line);
 	}
 
 	.spec-row {
 		border-bottom: 1px solid var(--line);
-		transition: background-color 0.15s ease, color 0.15s ease;
 	}
 
-	.spec-row:last-child {
-		border-bottom: 0;
-	}
-
-	.spec-row:hover {
-		background-color: var(--inv-bg);
-		color: var(--inv-fg);
-	}
-
-	.spec-row:hover .mono-meta,
-	.spec-row:hover .spec-context {
-		color: var(--inv-fg);
+	.spec-row > * {
+		min-width: 0;
 	}
 
 	.spec-domain {
 		font-family: 'Bricolage Grotesque Variable', sans-serif;
 		font-size: 1.125rem;
 		font-weight: 600;
+		padding-top: 0.35rem;
 	}
 
-	.spec-tags {
+	.marquee-viewport {
+		position: relative;
+		overflow-x: clip;
+		overflow-y: visible;
+		padding-block: 0.25rem;
+	}
+
+	.marquee-viewport::before,
+	.marquee-viewport::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		width: 28px;
+		z-index: 2;
+		pointer-events: none;
+	}
+
+	.marquee-viewport::before {
+		left: 0;
+		background: linear-gradient(to right, var(--bg), transparent);
+	}
+
+	.marquee-viewport::after {
+		right: 0;
+		background: linear-gradient(to left, var(--bg), transparent);
+	}
+
+	.marquee-track {
 		display: flex;
-		flex-wrap: wrap;
-		gap: 0.375rem;
+		align-items: center;
+		width: max-content;
+		gap: 1.75rem;
+		padding-right: 1.75rem;
 		list-style: none;
 		margin: 0;
-		padding: 0;
+		padding-left: 0;
+		animation: skills-marquee var(--marquee-duration, 28s) linear infinite;
 	}
 
-	.spec-tags li {
-		padding: 0.1875rem 0.5rem;
+	.marquee-viewport:hover .marquee-track,
+	.marquee-viewport:focus-within .marquee-track {
+		animation-play-state: paused;
+	}
+
+	@keyframes skills-marquee {
+		from {
+			transform: translate3d(0, 0, 0);
+		}
+		to {
+			transform: translate3d(-50%, 0, 0);
+		}
+	}
+
+	.skill-item {
+		position: relative;
+		flex-shrink: 0;
+	}
+
+	.skill-item:hover,
+	.skill-item:focus-within {
+		z-index: 30;
+	}
+
+	.skill-chip {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.35rem;
+		min-width: 36px;
+		min-height: 36px;
+		padding: 0.2rem;
+		border: 0;
+		border-radius: 8px;
+		background: transparent;
+		transition: transform 0.18s ease;
+	}
+
+	.skill-chip-svg {
+		width: 28px;
+		height: 28px;
+		flex-shrink: 0;
+	}
+
+	.skill-item:hover .skill-chip,
+	.skill-chip:focus-visible {
+		transform: translateY(-2px) scale(1.08);
+	}
+
+	.skill-hover-card {
+		--card-shift-x: 0px;
+		position: absolute;
+		left: 50%;
+		bottom: calc(100% + 8px);
+		transform: translate(calc(-50% + var(--card-shift-x)), 6px);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0.42rem 0.78rem;
 		border: 1px solid var(--border-strong);
+		border-radius: 10px;
+		background-color: var(--bg);
+		box-shadow: 0 10px 24px rgba(17, 17, 17, 0.1);
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+		transition:
+			opacity 0.18s ease,
+			transform 0.18s ease,
+			visibility 0.18s ease;
+	}
+
+	.skill-item:hover .skill-hover-card,
+	.skill-item:focus-within .skill-hover-card {
+		opacity: 1;
+		visibility: visible;
+		transform: translate(calc(-50% + var(--card-shift-x)), 0);
+	}
+
+	.hover-card-name {
+		font-size: 0.8125rem;
+		font-weight: 500;
+		line-height: 1.25;
+		color: var(--fg);
+		text-align: center;
+		white-space: nowrap;
 	}
 
 	.spec-context {
 		font-size: 0.9375rem;
 		color: var(--muted);
+		padding-top: 0.35rem;
 	}
 
 	@media (max-width: 960px) {
@@ -127,6 +308,35 @@ const t = useTranslations(lang);
 		.spec-row {
 			grid-template-columns: 1fr;
 			gap: 0.625rem;
+		}
+
+		.spec-domain,
+		.spec-context {
+			padding-top: 0;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.marquee-track {
+			animation: none;
+			width: auto;
+			flex-wrap: wrap;
+			gap: 1rem 1.25rem;
+			padding-right: 0;
+		}
+
+		.marquee-viewport::before,
+		.marquee-viewport::after {
+			display: none;
+		}
+
+		[data-marquee-dup='true'] {
+			display: none;
+		}
+
+		.skill-chip,
+		.skill-hover-card {
+			transition: none;
 		}
 	}
 </style>

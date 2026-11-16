@@ -9,134 +9,193 @@ interface Props {
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 const year = new Date().getFullYear();
+
+const socialLinks = [
+	{ label: profile.socials.linkedin.label, url: profile.socials.linkedin.url },
+	{ label: profile.socials.instagram.label, url: profile.socials.instagram.url },
+	{ label: profile.socials.github.label, url: profile.socials.github.url },
+];
 ---
 
-<footer class="site-footer">
-	<div class="container footer-grid">
-		<div class="footer-col">
-			<p class="mono-meta">{t('footer.clock')}</p>
-			<p class="clock-readout" data-wib-clock>--:--:-- WIB</p>
-		</div>
+<footer id="contact" class="site-footer">
+	<div class="container footer-shell">
+		<div class="footer-top">
+			<div class="footer-cta">
+				<h2 class="footer-heading">
+					<span>{t('contact.line1')}</span>
+					<span>{t('contact.line2')}</span>
+				</h2>
 
-		<div class="footer-col">
-			<p class="mono-meta">Direct Channels</p>
-			<div class="footer-links">
-				<a href={profile.socials.whatsapp.url} target="_blank" rel="noopener noreferrer" class="footer-link">
-					WhatsApp
-				</a>
-				<a href={profile.socials.linkedin.url} target="_blank" rel="noopener noreferrer" class="footer-link">
-					LinkedIn
-				</a>
-				<a href={profile.socials.instagram.url} target="_blank" rel="noopener noreferrer" class="footer-link">
-					Instagram
-				</a>
+				<div class="footer-pills">
+					<a
+						href={profile.socials.whatsapp.url}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="footer-pill"
+					>
+						<span>{t('contact.wa')}</span>
+						<span aria-hidden="true">&rarr;</span>
+					</a>
+					<a href={profile.socials.email.url} class="footer-pill">
+						<span>{t('contact.email')}</span>
+						<span aria-hidden="true">@</span>
+					</a>
+				</div>
 			</div>
+
+			<nav class="footer-socials" aria-label={t('footer.socialsAria')}>
+				{
+					socialLinks.map((item) => (
+						<a
+							href={item.url}
+							target="_blank"
+							rel="noopener noreferrer"
+							class="footer-social-link"
+						>
+							{item.label}
+						</a>
+					))
+				}
+			</nav>
 		</div>
 
-		<div class="footer-col footer-meta">
-			<p class="mono-meta">&copy; {year} {profile.fullName}. {t('footer.rights')}</p>
-			<p class="mono-meta">{t('footer.credit')}</p>
+		<div class="footer-wordmark-wrap" aria-hidden="true">
+			<p class="footer-wordmark">FAJAR</p>
+		</div>
+
+		<div class="footer-bottom">
+			<p>&copy;{year} &mdash; {profile.fullName}</p>
+			<p>{t('footer.location')}</p>
 		</div>
 	</div>
 </footer>
 
-<script>
-	function initClock() {
-		const els = document.querySelectorAll<HTMLElement>('[data-wib-clock]');
-		if (els.length === 0) return;
-
-		const formatter = new Intl.DateTimeFormat('en-GB', {
-			timeZone: 'Asia/Jakarta',
-			hour: '2-digit',
-			minute: '2-digit',
-			second: '2-digit',
-			hour12: false,
-		});
-
-		function tick() {
-			const now = `${formatter.format(new Date())} WIB`;
-			els.forEach((el) => {
-				el.textContent = now;
-			});
-		}
-
-		tick();
-		const id = window.setInterval(tick, 1000);
-		document.addEventListener(
-			'astro:before-swap',
-			() => {
-				window.clearInterval(id);
-			},
-			{ once: true },
-		);
-	}
-
-	document.addEventListener('astro:page-load', initClock);
-</script>
-
 <style>
 	.site-footer {
-		border-top: 1px solid var(--line);
-		padding-block: clamp(2.5rem, 5vw, 4rem);
-		background-color: var(--surface);
+		background-color: #000000;
+		color: #f4f4f2;
+		padding-top: clamp(4.5rem, 9vw, 8rem);
+		padding-bottom: clamp(1.5rem, 3vw, 2.25rem);
 	}
 
-	.footer-grid {
-		display: grid;
-		grid-template-columns: 1fr 1fr 1.5fr;
-		gap: 2rem;
-		align-items: start;
+	.site-footer :global(:focus-visible) {
+		outline: 2px solid #ffffff;
+		outline-offset: 3px;
 	}
 
-	.footer-col {
+	.footer-top {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-end;
+		gap: 3rem;
+		flex-wrap: wrap;
+	}
+
+	.footer-heading {
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
+		font-family: var(--font-sans);
+		font-size: clamp(2.5rem, 5.2vw, 4.5rem);
+		font-weight: 400;
+		line-height: 1.04;
+		letter-spacing: -0.03em;
+		color: #ffffff;
+		margin-bottom: 1.75rem;
 	}
 
-	.clock-readout {
-		font-family: 'IBM Plex Mono', monospace;
-		font-size: 1.125rem;
-		font-weight: 500;
-		font-variant-numeric: tabular-nums;
-	}
-
-	.footer-links {
+	.footer-pills {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.5rem;
+		gap: 0.75rem;
 	}
 
-	.footer-link {
+	.footer-pill {
 		display: inline-flex;
 		align-items: center;
+		gap: 0.75rem;
 		min-height: 44px;
-		padding-inline: 0.75rem;
-		border: 1px solid var(--border-strong);
-		border-radius: 2px;
-		font-family: 'IBM Plex Mono', monospace;
+		padding: 0.65rem 1.35rem;
+		border: 1px solid rgba(255, 255, 255, 0.28);
+		border-radius: 999px;
+		font-size: 0.75rem;
+		font-weight: 500;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: #ffffff;
+		transition:
+			background-color 0.2s ease,
+			color 0.2s ease,
+			border-color 0.2s ease;
+	}
+
+	.footer-pill:hover {
+		background-color: #ffffff;
+		color: #000000;
+		border-color: #ffffff;
+	}
+
+	.footer-socials {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		padding-right: clamp(0rem, 6vw, 6rem);
+	}
+
+	.footer-social-link {
+		font-family: var(--font-sans);
+		font-size: clamp(1.2rem, 1.8vw, 1.55rem);
+		font-weight: 400;
+		line-height: 1.35;
+		color: #ffffff;
+		transition: opacity 0.18s ease;
+	}
+
+	.footer-social-link:hover {
+		opacity: 0.65;
+	}
+
+	.footer-wordmark-wrap {
+		margin-top: clamp(3.5rem, 7vw, 6rem);
+		margin-bottom: clamp(1.25rem, 2.5vw, 2rem);
+		overflow: hidden;
+	}
+
+	.footer-wordmark {
+		font-family: var(--font-display);
+		font-weight: 800;
+		font-size: clamp(4.25rem, 23.5vw, 21rem);
+		line-height: 0.86;
+		letter-spacing: -0.04em;
+		text-transform: uppercase;
+		text-align: center;
+		color: #ffffff;
+		user-select: none;
+		white-space: nowrap;
+	}
+
+	.footer-bottom {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 1rem 2rem;
+		flex-wrap: wrap;
 		font-size: 0.8125rem;
-		transition: background-color 0.15s ease, color 0.15s ease;
+		color: rgba(244, 244, 242, 0.75);
 	}
 
-	.footer-link:hover {
-		background-color: var(--inv-bg);
-		color: var(--inv-fg);
-	}
-
-	@media (max-width: 900px) {
-		.footer-grid {
-			grid-template-columns: 1fr 1fr;
+	@media (max-width: 720px) {
+		.footer-top {
+			flex-direction: column;
+			align-items: flex-start;
 		}
 
-		.footer-meta {
-			grid-column: 1 / -1;
+		.footer-socials {
+			padding-right: 0;
 		}
-	}
 
-	@media (max-width: 580px) {
-		.footer-grid {
-			grid-template-columns: 1fr;
+		.footer-bottom {
+			flex-direction: column;
+			align-items: flex-start;
 		}
 	}
 </style>

@@ -24,7 +24,7 @@ export function initHomeAnimations(): () => void {
 		if (words.length > 0) {
 			gsap.fromTo(
 				words,
-				{ opacity: 0.28 },
+				{ opacity: 0.65 },
 				{
 					opacity: 1,
 					stagger: 0.04,
@@ -57,87 +57,9 @@ export function initHomeAnimations(): () => void {
 				},
 			);
 		}
-
-		const revealBlocks = gsap.utils.toArray<HTMLElement>('[data-reveal]');
-		for (const block of revealBlocks) {
-			gsap.fromTo(
-				block,
-				{ y: 24, opacity: 0 },
-				{
-					y: 0,
-					opacity: 1,
-					duration: 0.65,
-					ease: 'power2.out',
-					scrollTrigger: {
-						trigger: block,
-						start: 'top 88%',
-						once: true,
-					},
-				},
-			);
-		}
-	});
-
-	const mm = gsap.matchMedia();
-	mm.add('(min-width: 960px) and (prefers-reduced-motion: no-preference)', () => {
-		const section = document.querySelector<HTMLElement>('[data-showcase-section]');
-		const track = document.querySelector<HTMLElement>('[data-showcase-track]');
-		const progressFill = document.querySelector<HTMLElement>('[data-showcase-progress]');
-		const counterCurrent = document.querySelector<HTMLElement>('[data-showcase-current]');
-		const panels = gsap.utils.toArray<HTMLElement>('[data-showcase-panel]');
-
-		if (!section || !track || panels.length === 0) return;
-
-		const getScrollDistance = () => Math.max(0, track.scrollWidth - section.clientWidth);
-
-		const tween = gsap.to(track, {
-			x: () => -getScrollDistance(),
-			ease: 'none',
-			scrollTrigger: {
-				trigger: section,
-				pin: true,
-				scrub: 0.6,
-				invalidateOnRefresh: true,
-				end: () => `+=${getScrollDistance()}`,
-				onUpdate: (self) => {
-					if (progressFill) {
-						progressFill.style.transform = `scaleX(${self.progress})`;
-					}
-					if (counterCurrent) {
-						const idx = Math.min(
-							panels.length,
-							Math.max(1, Math.ceil(self.progress * panels.length)),
-						);
-						counterCurrent.textContent = String(idx).padStart(2, '0');
-					}
-				},
-			},
-		});
-
-		for (const panel of panels) {
-			const cover = panel.querySelector<HTMLElement>('[data-panel-cover]');
-			if (cover) {
-				gsap.fromTo(
-					cover,
-					{ clipPath: 'inset(0 18% 0 0)' },
-					{
-						clipPath: 'inset(0 0% 0 0)',
-						ease: 'power2.out',
-						scrollTrigger: {
-							trigger: panel,
-							containerAnimation: tween,
-							start: 'left 85%',
-							end: 'left 35%',
-							scrub: true,
-						},
-					},
-				);
-			}
-		}
 	});
 
 	return () => {
-		mm.revert();
 		ctx.revert();
 	};
 }
@@ -225,8 +147,12 @@ export function initWorksArchive(): () => void {
 		const yTo = gsap.quickTo(previewBox, 'y', { duration: 0.35, ease: 'power3' });
 
 		const onMove = (e: PointerEvent) => {
-			xTo(e.clientX + 24);
-			yTo(e.clientY - 90);
+			const w = previewBox.offsetWidth || 340;
+			const h = previewBox.offsetHeight || 212;
+			const x = Math.min(Math.max(12, e.clientX + 24), window.innerWidth - w - 12);
+			const y = Math.min(Math.max(12, e.clientY - 90), window.innerHeight - h - 12);
+			xTo(x);
+			yTo(y);
 		};
 
 		window.addEventListener('pointermove', onMove);

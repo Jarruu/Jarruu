@@ -1,4 +1,5 @@
 ---
+import { Image } from 'astro:assets';
 import { render, type CollectionEntry } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
 import { type Lang, useTranslations, localePath } from '../i18n/utils';
@@ -6,86 +7,144 @@ import { type Lang, useTranslations, localePath } from '../i18n/utils';
 interface Props {
 	lang: Lang;
 	entry: CollectionEntry<'works'>;
+	prevEntry: CollectionEntry<'works'>;
 	nextEntry: CollectionEntry<'works'>;
 }
 
-const { lang, entry, nextEntry } = Astro.props;
+const { lang, entry, prevEntry, nextEntry } = Astro.props;
 const t = useTranslations(lang);
 const { Content } = await render(entry);
+const homeUrl = localePath(lang, '');
 const archiveUrl = localePath(lang, 'work');
+const prevUrl = localePath(lang, `work/${prevEntry.data.slugId}`);
 const nextUrl = localePath(lang, `work/${nextEntry.data.slugId}`);
+const categories: Record<string, string> = {
+	iot: t('works.filter.iot'),
+	ai: t('works.filter.ai'),
+	software: t('works.filter.software'),
+};
+const category = categories[entry.data.category];
 ---
 
 <Layout lang={lang} title={entry.data.title} description={entry.data.summary}>
-	<article class="detail-page">
+	<article class="detail-page" data-page="work-detail">
 		<div class="container">
-			<div class="detail-topbar">
-				<a href={archiveUrl} class="btn-secondary">
-					{t('detail.back')}
-				</a>
-				<span class="mono-meta">
-					SPEC // {entry.data.category.toUpperCase()} · {entry.data.year}
-				</span>
+			<!-- Breadcrumb Navigation & Top Action Bar -->
+			<div class="page-topbar">
+				<nav class="breadcrumb-nav" aria-label="Breadcrumb">
+					<ol class="breadcrumb-list">
+						<li>
+							<a href={homeUrl} class="breadcrumb-link">{t('detail.breadcrumb.home')}</a>
+						</li>
+						<li class="breadcrumb-sep" aria-hidden="true">›</li>
+						<li>
+							<a href={archiveUrl} class="breadcrumb-link">{t('detail.breadcrumb.works')}</a>
+						</li>
+						<li class="breadcrumb-sep" aria-hidden="true">›</li>
+						<li class="breadcrumb-current" aria-current="page">{entry.data.title}</li>
+					</ol>
+				</nav>
+
+				<div class="topbar-actions">
+					<a href={archiveUrl} class="halomot-btn halomot-btn--sm">
+						<span class="halomot-inner">
+							<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+								<path
+									d="M10 12L6 8L10 4"
+									stroke="currentColor"
+									stroke-width="1.75"
+									stroke-linecap="round"
+									stroke-linejoin="round"></path>
+							</svg>
+							<span>{t('detail.back')}</span>
+						</span>
+					</a>
+				</div>
 			</div>
 
-			{
-				entry.data.placeholder && (
-					<div class="placeholder-banner" role="note">
-						<span class="mono-meta">{t('detail.placeholder.notice')}</span>
+			<!-- Asymmetric Split Hero: Core Narrative & Context (Left) + Proportional Media Frame (Right) -->
+			<section id="work-overview" class="detail-hero-split" aria-label={t('detail.overviewAria')}>
+				<div class="hero-left">
+					<p class="detail-meta" data-detail-reveal>
+						{category} · {entry.data.year}
+					</p>
+
+					<h1 class="detail-title" data-detail-reveal>{entry.data.title}</h1>
+					<p class="detail-summary" data-detail-reveal>{entry.data.summary}</p>
+
+					<div class="hero-highlights" data-detail-reveal>
+						<div class="highlight-item">
+							<span class="highlight-label">{t('detail.role')}</span>
+							<span class="highlight-value">{entry.data.role}</span>
+						</div>
+						<div class="highlight-item">
+							<span class="highlight-label">{t('detail.stack')}</span>
+							<ul class="highlight-stack-list" aria-label={t('works.stackAria')}>
+								{entry.data.stack.map((tech) => (
+									<li class="highlight-stack-chip">{tech}</li>
+								))}
+							</ul>
+						</div>
 					</div>
-				)
-			}
+				</div>
 
-			<header class="detail-header">
-				<h1 class="detail-title">{entry.data.title}</h1>
-				<p class="detail-summary">{entry.data.summary}</p>
-			</header>
+				<div class="hero-right">
+					<div class="detail-cover-viewport framed-surface framed-surface--interactive">
+						<div class="detail-cover-frame framed-surface-inner">
+							<Image
+								src={entry.data.cover}
+								alt={entry.data.coverAlt}
+								widths={[540, 820, 1000]}
+								sizes="(max-width: 900px) 100vw, 48vw"
+								fetchpriority="high"
+								transition:name={`work-cover-${entry.data.slugId}`}
+							/>
+						</div>
+					</div>
+				</div>
+			</section>
 
-			<div class="detail-cover">
-				<img
-					src={entry.data.cover}
-					alt={entry.data.coverAlt}
-					width="1000"
-					height="625"
-					fetchpriority="high"
-					transition:name={`work-cover-${entry.data.slugId}`}
-				/>
-			</div>
+			<!-- Main Content Grid with Sticky Sidebar -->
+			<div id="work-details" class="detail-grid">
+				<aside class="detail-sidebar" aria-label={t('detail.specsAria')}>
+					<div class="sidebar-inner">
+						<div class="sidebar-header">
+							<h2 class="sidebar-heading">{t('detail.specs')}</h2>
+						</div>
 
-			<div class="detail-grid">
-				<aside class="detail-sidebar" aria-label="Technical specifications">
-					<dl class="meta-list">
-						<div class="meta-item">
-							<dt class="mono-meta">{t('detail.role')}</dt>
-							<dd>{entry.data.role}</dd>
-						</div>
-						<div class="meta-item">
-							<dt class="mono-meta">{t('detail.category')}</dt>
-							<dd>{entry.data.category.toUpperCase()}</dd>
-						</div>
-						<div class="meta-item">
-							<dt class="mono-meta">{t('detail.year')}</dt>
-							<dd>{entry.data.year}</dd>
-						</div>
-						{
-							entry.data.specs.map((s) => (
-								<div class="meta-item">
-									<dt class="mono-meta">{s.label}</dt>
-									<dd>{s.value}</dd>
-								</div>
-							))
-						}
-						<div class="meta-item">
-							<dt class="mono-meta">{t('detail.stack')}</dt>
-							<dd>
-								<ul class="stack-pills">
-									{entry.data.stack.map((tech) => (
-										<li class="mono-meta">{tech}</li>
-									))}
-								</ul>
-							</dd>
-						</div>
-					</dl>
+						<dl class="meta-list">
+							<div class="meta-item">
+								<dt class="meta-label">{t('detail.role')}</dt>
+								<dd class="meta-value">{entry.data.role}</dd>
+							</div>
+							<div class="meta-item">
+								<dt class="meta-label">{t('detail.category')}</dt>
+								<dd class="meta-value">{category}</dd>
+							</div>
+							<div class="meta-item">
+								<dt class="meta-label">{t('detail.year')}</dt>
+								<dd class="meta-value">{entry.data.year}</dd>
+							</div>
+							{
+								entry.data.specs.map((s) => (
+									<div class="meta-item">
+										<dt class="meta-label">{s.label}</dt>
+										<dd class="meta-value">{s.value}</dd>
+									</div>
+								))
+							}
+							<div class="meta-item meta-item-stack">
+								<dt class="meta-label">{t('detail.stack')}</dt>
+								<dd class="meta-value">
+									<ul class="stack-chips" aria-label={t('works.stackAria')}>
+										{entry.data.stack.map((tech) => (
+											<li class="stack-chip">{tech}</li>
+										))}
+									</ul>
+								</dd>
+							</div>
+						</dl>
+					</div>
 				</aside>
 
 				<div class="detail-prose">
@@ -93,182 +152,619 @@ const nextUrl = localePath(lang, `work/${nextEntry.data.slugId}`);
 				</div>
 			</div>
 
-			<footer class="next-project">
-				<p class="mono-meta">{t('detail.next')}</p>
-				<a href={nextUrl} class="next-link">
-					<span class="next-title">{nextEntry.data.title}</span>
-					<span class="mono-meta">
-						{nextEntry.data.category.toUpperCase()} · {nextEntry.data.year}
-					</span>
-				</a>
+			<!-- 2-Way Work Navigation Footer -->
+			<footer id="work-more" class="work-navigation" aria-label={t('detail.paginationAria')}>
+				<div class="nav-controls">
+					<a href={prevUrl} class="nav-card prev-card framed-surface framed-surface--interactive">
+						<div class="nav-card-inner framed-surface-inner">
+							<div class="nav-card-head">
+								<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+									<path
+										d="M10 12L6 8L10 4"
+										stroke="currentColor"
+										stroke-width="1.75"
+										stroke-linecap="round"
+										stroke-linejoin="round"></path>
+								</svg>
+								<span>{t('detail.prev')}</span>
+							</div>
+							<span class="nav-title">{prevEntry.data.title}</span>
+							<span class="nav-sub">
+								{categories[prevEntry.data.category]} · {prevEntry.data.year}
+							</span>
+						</div>
+					</a>
+
+					<a
+						href={archiveUrl}
+						class="nav-hub-btn halomot-btn halomot-btn--primary"
+						aria-label={t('detail.allWorks')}
+					>
+						<span class="halomot-inner nav-hub-inner">
+							<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+								<rect x="2" y="2" width="5" height="5" rx="1"></rect>
+								<rect x="9" y="2" width="5" height="5" rx="1"></rect>
+								<rect x="2" y="9" width="5" height="5" rx="1"></rect>
+								<rect x="9" y="9" width="5" height="5" rx="1"></rect>
+							</svg>
+							<span>{t('detail.allWorks')}</span>
+						</span>
+					</a>
+
+					<a href={nextUrl} class="nav-card next-card framed-surface framed-surface--interactive">
+						<div class="nav-card-inner framed-surface-inner">
+							<div class="nav-card-head is-right">
+								<span>{t('detail.next')}</span>
+								<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+									<path
+										d="M6 4L10 8L6 12"
+										stroke="currentColor"
+										stroke-width="1.75"
+										stroke-linecap="round"
+										stroke-linejoin="round"></path>
+								</svg>
+							</div>
+							<span class="nav-title">{nextEntry.data.title}</span>
+							<span class="nav-sub">
+								{categories[nextEntry.data.category]} · {nextEntry.data.year}
+							</span>
+						</div>
+					</a>
+				</div>
 			</footer>
 		</div>
 	</article>
 </Layout>
+
+<script>
+	import { gsap, prefersReducedMotion } from '../scripts/lib/lifecycle';
+
+	function initDetailReveal() {
+		const page = document.querySelector<HTMLElement>('[data-page="work-detail"]');
+		if (!page || prefersReducedMotion()) return;
+		const els = page.querySelectorAll<HTMLElement>('[data-detail-reveal]');
+		if (els.length === 0) return;
+		gsap.fromTo(
+			els,
+			{ opacity: 0, y: 14 },
+			{
+				opacity: 1,
+				y: 0,
+				duration: 0.42,
+				stagger: 0.06,
+				ease: 'power2.out',
+				clearProps: 'transform,opacity',
+			}
+		);
+	}
+
+	document.addEventListener('astro:page-load', initDetailReveal);
+</script>
 
 <style>
 	.detail-page {
 		padding-block: clamp(2rem, 5vw, 4.5rem);
 	}
 
-	.detail-topbar {
-		display: flex;
+	/* Asymmetric Split Hero */
+	.detail-hero-split {
+		display: grid;
+		grid-template-columns: 1.05fr 0.95fr;
+		gap: clamp(2rem, 4.5vw, 4rem);
 		align-items: center;
-		justify-content: space-between;
-		gap: 1rem;
-		padding-bottom: 1.5rem;
+		padding-bottom: clamp(2.5rem, 4vw, 3.5rem);
 		border-bottom: 1px solid var(--line);
-		margin-bottom: 1.5rem;
-		flex-wrap: wrap;
+		margin-bottom: clamp(2.5rem, 4vw, 3.5rem);
 	}
 
-	.placeholder-banner {
-		padding: 0.875rem 1.25rem;
-		border: 1.5px solid var(--border-strong);
-		background-color: var(--surface);
-		margin-bottom: 2rem;
+	.hero-left {
+		display: flex;
+		flex-direction: column;
 	}
 
-	.detail-header {
-		max-width: 820px;
-		margin-bottom: 2rem;
+	.detail-meta {
+		font-family: var(--font-mono);
+		font-size: 0.78rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--muted);
+		margin-bottom: 0.85rem;
 	}
 
 	.detail-title {
-		font-size: clamp(2rem, 4.2vw, 3.5rem);
-		margin-bottom: 0.75rem;
+		font-size: clamp(2rem, 3.2vw, 3rem);
+		line-height: 1.08;
+		letter-spacing: -0.025em;
+		margin-bottom: 0.95rem;
+		color: var(--fg);
 	}
 
 	.detail-summary {
-		font-size: clamp(1.0625rem, 1.4vw, 1.25rem);
+		font-size: clamp(1rem, 1.3vw, 1.15rem);
+		line-height: 1.6;
 		color: var(--muted);
+		margin-bottom: 1.6rem;
+		max-width: 62ch;
 	}
 
-	.detail-cover {
-		border: 1.5px solid var(--border-strong);
-		background-color: var(--surface);
-		margin-bottom: clamp(2.5rem, 5vw, 4rem);
-	}
-
-	.detail-cover img {
-		width: 100%;
-		height: auto;
-	}
-
-	.detail-grid {
-		display: grid;
-		grid-template-columns: 320px 1fr;
-		gap: clamp(2rem, 5vw, 4rem);
-		align-items: start;
-		padding-bottom: clamp(3rem, 6vw, 5rem);
-		border-bottom: 1.5px solid var(--fg);
-	}
-
-	.detail-sidebar {
-		border: 1px solid var(--border-strong);
-		background-color: var(--surface);
-		padding: 1.5rem;
-	}
-
-	.meta-list {
-		margin: 0;
+	/* Highlights strip */
+	.hero-highlights {
 		display: flex;
 		flex-direction: column;
+		gap: 0.85rem;
+		padding-top: 1.25rem;
+		border-top: 1px solid var(--line);
+	}
+
+	.highlight-item {
+		display: flex;
+		align-items: baseline;
 		gap: 1rem;
+		flex-wrap: wrap;
 	}
 
-	.meta-item {
-		padding-bottom: 0.875rem;
-		border-bottom: 1px solid var(--line);
+	.highlight-label {
+		font-family: var(--font-mono);
+		font-size: 0.78rem;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--muted);
+		min-width: 72px;
+		flex-shrink: 0;
 	}
 
-	.meta-item:last-child {
-		border-bottom: 0;
-		padding-bottom: 0;
+	.highlight-value {
+		font-size: 0.9375rem;
+		font-weight: 600;
+		color: var(--fg);
 	}
 
-	.meta-item dd {
-		margin: 0.25rem 0 0;
-		font-weight: 500;
-	}
-
-	.stack-pills {
+	.highlight-stack-list {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.375rem;
 		list-style: none;
 		padding: 0;
-		margin: 0.375rem 0 0;
+		margin: 0;
 	}
 
-	.stack-pills li {
-		padding: 0.125rem 0.5rem;
+	.highlight-stack-chip {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.15rem 0.55rem;
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		color: var(--muted);
+		background-color: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: 6px;
+	}
+
+	/* Proportional media frame matching Work Showcase deck */
+	.hero-right {
+		width: 100%;
+	}
+
+	.detail-cover-viewport {
+		width: 100%;
+	}
+
+	.detail-cover-frame {
+		width: 100%;
+		aspect-ratio: 16 / 10;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background-color: var(--surface);
+	}
+
+	.detail-cover-frame img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		object-position: top center;
+		display: block;
+	}
+
+	/* Main Layout Grid */
+	.detail-grid {
+		display: grid;
+		grid-template-columns: 320px 1fr;
+		gap: clamp(2.5rem, 5vw, 4.5rem);
+		align-items: start;
+		padding-bottom: clamp(3rem, 6vw, 5rem);
+		border-bottom: 1px solid var(--line);
+	}
+
+	/* Sticky Sidebar Specifications */
+	.detail-sidebar {
+		position: sticky;
+		top: 6rem;
+	}
+
+	.sidebar-inner {
 		border: 1px solid var(--border-strong);
+		border-radius: 18px;
+		background-color: var(--bg);
+		box-shadow: 0 18px 40px -28px rgba(17, 17, 17, 0.22);
+		overflow: hidden;
+	}
+
+	.sidebar-header {
+		padding: 0.95rem 1.25rem;
+		background-color: var(--surface);
+		border-bottom: 1px solid var(--line);
+	}
+
+	.sidebar-heading {
+		font-family: var(--font-mono);
+		font-size: 0.82rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		font-weight: 500;
+		color: var(--fg);
+	}
+
+	.meta-list {
+		margin: 0;
+		padding: 0.5rem 1.25rem 1.25rem 1.25rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0;
+	}
+
+	.meta-item {
+		padding-block: 0.875rem;
+		border-bottom: 1px solid var(--line);
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	.meta-item:last-child {
+		border-bottom: none;
+		padding-bottom: 0;
+	}
+
+	.meta-label {
+		font-size: 0.875rem;
+		color: var(--muted);
+	}
+
+	.meta-value {
+		margin: 0;
+		font-size: 0.9375rem;
+		font-weight: 500;
+		color: var(--fg);
+		line-height: 1.4;
+	}
+
+	.stack-chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.375rem;
+		list-style: none;
+		padding: 0;
+		margin: 0.25rem 0 0;
+	}
+
+	.stack-chip {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.15rem 0.55rem;
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		color: var(--muted);
+		background-color: var(--surface);
+		border: 1px solid var(--line);
+		border-radius: 6px;
+	}
+
+	/* Detail Prose Styling */
+	.detail-prose {
+		min-width: 0; /* Prevents overflow in grid items */
 	}
 
 	.detail-prose :global(h2) {
-		font-size: 1.65rem;
-		margin: 2rem 0 0.75rem;
+		font-size: clamp(1.5rem, 2.4vw, 2rem);
+		letter-spacing: -0.02em;
+		margin: 2.5rem 0 1rem;
+		padding-bottom: 0.5rem;
+		border-bottom: 1px solid var(--line);
+		color: var(--fg);
 	}
 
 	.detail-prose :global(h2:first-child) {
 		margin-top: 0;
 	}
 
-	.detail-prose :global(p),
+	.detail-prose :global(h3) {
+		font-size: 1.25rem;
+		margin: 1.75rem 0 0.75rem;
+		color: var(--fg);
+	}
+
+	.detail-prose :global(p) {
+		margin: 0 0 1.25rem;
+		font-size: 1.0625rem;
+		line-height: 1.7;
+		color: var(--fg);
+	}
+
 	.detail-prose :global(ul),
 	.detail-prose :global(ol) {
-		margin: 0 0 1.25rem;
+		margin: 0 0 1.5rem;
+		padding-left: 1.5rem;
 		color: var(--fg);
 	}
 
 	.detail-prose :global(li) {
 		margin-bottom: 0.5rem;
+		font-size: 1.0625rem;
+		line-height: 1.6;
 	}
 
-	.detail-prose :global(pre) {
-		padding: 1.25rem;
-		border: 1px solid var(--border-strong);
-		background-color: var(--surface) !important;
-		overflow-x: auto;
+	.detail-prose :global(li strong) {
+		font-weight: 600;
+		color: var(--fg);
+	}
+
+	.detail-prose :global(:not(pre) > code) {
 		font-family: 'IBM Plex Mono', monospace;
-		font-size: 0.875rem;
+		font-size: 0.875em;
+		padding: 0.15rem 0.4rem;
+		background-color: var(--surface);
+		border: 1px solid var(--line);
+		color: var(--fg);
+		border-radius: 2px;
 	}
 
-	.next-project {
-		padding-top: 2.5rem;
+	/* Technical Architecture Visual Topology */
+	.detail-prose :global(.tech-arch) {
+		margin: 2.25rem 0;
+		border: 1px solid var(--border-strong);
+		border-radius: 18px;
+		padding: 0;
+		overflow: hidden;
 	}
 
-	.next-link {
-		margin-top: 0.75rem;
+	.detail-prose :global(.tech-arch-header) {
 		display: flex;
-		align-items: baseline;
+		align-items: center;
 		justify-content: space-between;
-		gap: 1rem;
-		padding: 1.5rem;
-		border: 1.5px solid var(--border-strong);
-		transition: background-color 0.15s ease, color 0.15s ease;
+		padding: 0.85rem 1.25rem;
+		border-bottom: 1px solid var(--line);
+		background-color: var(--surface);
 		flex-wrap: wrap;
+		gap: 0.5rem;
 	}
 
-	.next-link:hover {
+	.detail-prose :global(.tech-arch-system-tag) {
+		font-size: 0.875rem;
+		color: var(--muted);
+	}
+
+	.detail-prose :global(.tech-arch-flow) {
+		display: flex;
+		flex-direction: column;
+		gap: 0;
+		padding: 1.25rem;
+	}
+
+	.detail-prose :global(.tech-arch-node) {
+		background-color: var(--bg);
+		border: 1px solid var(--line);
+		border-radius: 12px;
+		padding: 1.25rem 1.5rem;
+	}
+
+	.detail-prose :global(.tech-arch-node-top) {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.detail-prose :global(.tech-arch-step) {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 22px;
+		height: 22px;
 		background-color: var(--inv-bg);
 		color: var(--inv-fg);
-	}
-
-	.next-link:hover .mono-meta {
-		color: var(--inv-fg);
-	}
-
-	.next-title {
-		font-family: 'Bricolage Grotesque Variable', sans-serif;
-		font-size: clamp(1.35rem, 2.5vw, 2rem);
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.6875rem;
 		font-weight: 600;
+		border-radius: 2px;
+	}
+
+	.detail-prose :global(.tech-arch-badge) {
+		font-size: 0.875rem;
+		color: var(--muted);
+	}
+
+	.detail-prose :global(.tech-arch-title) {
+		font-family: 'Bricolage Grotesque Variable', sans-serif;
+		font-size: 1.25rem;
+		font-weight: 600;
+		margin: 0 0 0.25rem;
+		color: var(--fg);
+	}
+
+	.detail-prose :global(.tech-arch-sub) {
+		font-size: 0.875rem;
+		color: var(--muted);
+		margin: 0 0 0.75rem;
+	}
+
+	.detail-prose :global(.tech-arch-list) {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+	}
+
+	.detail-prose :global(.tech-arch-list li) {
+		font-size: 0.9375rem;
+		color: var(--fg);
+		margin: 0;
+		padding-left: 1.25rem;
+		position: relative;
+	}
+
+	.detail-prose :global(.tech-arch-list li::before) {
+		content: '›';
+		position: absolute;
+		left: 0;
+		font-weight: bold;
+		color: var(--muted);
+	}
+
+	.detail-prose :global(.tech-arch-desc) {
+		font-size: 0.9375rem;
+		color: var(--fg);
+		margin: 0;
+		line-height: 1.5;
+	}
+
+	.detail-prose :global(.tech-arch-connector) {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 0.5rem 0;
+	}
+
+	.detail-prose :global(.tech-arch-connector-line) {
+		width: 1.5px;
+		height: 12px;
+		background-color: var(--border-strong);
+	}
+
+	.detail-prose :global(.tech-arch-connector-tag) {
+		font-family: 'IBM Plex Mono', monospace;
+		font-size: 0.75rem;
+		background-color: var(--bg);
+		border: 1px solid var(--border-strong);
+		padding: 0.2rem 0.625rem;
+		margin: 0.25rem 0;
+		color: var(--fg);
+		border-radius: 2px;
+	}
+
+	.detail-prose :global(.tech-arch-connector-arrow) {
+		font-size: 0.875rem;
+		line-height: 1;
+		color: var(--fg);
+	}
+
+	/* 2-Way Work Pagination Navigation */
+	.work-navigation {
+		padding-top: clamp(2.5rem, 5vw, 4rem);
+	}
+
+	.nav-controls {
+		display: grid;
+		grid-template-columns: 1fr auto 1fr;
+		gap: 1.25rem;
+		align-items: stretch;
+	}
+
+	.nav-card {
+		display: flex;
+		text-decoration: none;
+	}
+
+	.nav-card:hover {
+		transform: translateY(-2px);
+	}
+
+	.nav-card-inner {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		width: 100%;
+		padding: 1.35rem 1.5rem;
+		background-color: var(--bg);
+		transition: background-color 0.2s ease;
+	}
+
+	.nav-card:hover .nav-card-inner {
+		background-color: var(--surface);
+	}
+
+	.nav-card-head {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-bottom: 0.75rem;
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--muted);
+	}
+
+	.nav-card-head.is-right {
+		justify-content: flex-end;
+	}
+
+	.nav-title {
+		font-family: var(--font-display);
+		font-size: clamp(1.125rem, 1.8vw, 1.45rem);
+		font-weight: 600;
+		line-height: 1.2;
+		color: var(--fg);
+		margin-bottom: 0.5rem;
+	}
+
+	.nav-sub {
+		font-family: var(--font-mono);
+		font-size: 0.78rem;
+		color: var(--muted);
+	}
+
+	.nav-hub-btn {
+		align-self: stretch;
+	}
+
+	.nav-hub-inner {
+		flex-direction: column;
+		gap: 0.5rem;
+		padding: 1rem 1.35rem;
+		white-space: nowrap;
 	}
 
 	@media (max-width: 900px) {
+		.detail-hero-split {
+			grid-template-columns: 1fr;
+			gap: 1.75rem;
+			padding-bottom: 2rem;
+			margin-bottom: 2rem;
+		}
+
 		.detail-grid {
 			grid-template-columns: 1fr;
+			gap: 2.5rem;
+		}
+
+		.detail-sidebar {
+			position: static;
+		}
+
+		.nav-controls {
+			grid-template-columns: 1fr;
+		}
+
+		.nav-hub-btn {
+			order: 3;
+		}
+
+		.nav-hub-inner {
+			flex-direction: row;
+			padding: 0.78rem 1.25rem;
 		}
 	}
 </style>

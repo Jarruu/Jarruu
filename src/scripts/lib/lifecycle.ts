@@ -42,17 +42,96 @@ function stopLenis() {
 	}
 }
 
+function normalizePath(pathname: string): string {
+	return pathname.replace(/\/+$/, '') || '/';
+}
+
+function resolveHashTarget(hash = window.location.hash): HTMLElement | null {
+	const raw = hash.slice(1);
+	if (!raw) return null;
+	try {
+		return document.getElementById(decodeURIComponent(raw));
+	} catch {
+		return document.getElementById(raw);
+	}
+}
+
+function scrollToElement(target: HTMLElement, immediate = false) {
+	if (lenisInstance) {
+		// Lenis already subtracts CSS scroll-padding-top when resolving an Element target.
+		lenisInstance.scrollTo(target, { immediate, force: true });
+		return;
+	}
+	const scrollPad =
+		Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+	const top = Math.max(0, target.getBoundingClientRect().top + window.scrollY - scrollPad);
+	window.scrollTo({
+		top,
+		behavior: immediate || prefersReducedMotion() ? ('instant' as ScrollBehavior) : 'smooth',
+	});
+}
+
+function handleSamePageHashClick(e: MouseEvent) {
+	if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) {
+		return;
+	}
+	const el = e.target instanceof Element ? e.target.closest('a[href]') : null;
+	if (!(el instanceof HTMLAnchorElement)) return;
+	if (el.hasAttribute('download') || el.dataset.astroReload !== undefined) return;
+	if (el.target && el.target !== '_self') return;
+
+	const url = new URL(el.href, location.href);
+	if (
+		url.origin !== location.origin ||
+		normalizePath(url.pathname) !== normalizePath(location.pathname) ||
+		url.search !== location.search ||
+		!url.hash
+	) {
+		return;
+	}
+
+	const target = resolveHashTarget(url.hash);
+	if (!target) return;
+
+	// Prevent Astro ClientRouter from swapping the whole DOM on same-page #hash jumps.
+	e.preventDefault();
+	history.replaceState(history.state, '', url.pathname + url.search + url.hash);
+	scrollToElement(target, prefersReducedMotion());
+}
+
+export function scrollToRatio(ratio: number, immediate = false) {
+	const clamped = Math.max(0, Math.min(1, ratio));
+	const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+	const targetY = clamped * maxScroll;
+
+	if (lenisInstance) {
+		lenisInstance.scrollTo(targetY, { immediate, force: true });
+		return;
+	}
+
+	window.scrollTo({
+		top: targetY,
+		behavior: immediate || prefersReducedMotion() ? ('instant' as ScrollBehavior) : 'smooth',
+	});
+}
+
 export function onPageLoad(fn: () => Cleanup | void) {
 	initializers.push(fn);
 	if (!bound && typeof document !== 'undefined') {
 		bound = true;
+		document.addEventListener('click', handleSamePageHashClick, { capture: true });
 		document.addEventListener('astro:page-load', () => {
 			stopLenis();
+			const hashTarget = resolveHashTarget();
+			if (hashTarget) scrollToElement(hashTarget, true);
 			startLenis();
 			activeCleanups = initializers
 				.map((init) => init())
 				.filter((c): c is Cleanup => typeof c === 'function');
 			ScrollTrigger.refresh();
+			if (hashTarget) {
+				requestAnimationFrame(() => scrollToElement(hashTarget, true));
+			}
 		});
 		document.addEventListener('astro:before-swap', () => {
 			for (const cleanup of activeCleanups) {
