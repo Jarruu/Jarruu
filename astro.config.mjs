@@ -9,7 +9,5 @@ export default defineConfig({
 			prefixDefaultLocale: false,
 		},
 	},
-	site: 'https://jarruu.github.io',
-	base: '/portfolio',
 });
 
